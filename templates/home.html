@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>WeDiagnostiX</title>
+</head>
+
+<style>
+   canvas{
+     border: 1px solid black;
+   }
+
+</style>
+<body>
+    <center> <h1> Image processing</h1> </center>
+
+
+      <form action="." method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            {{form.as_p}}
+            <input name="submit" type="submit" id="mybutton" class="btn btn-lg btn-success"> </input>
+      </form>
+
+            {% if obj %}
+            <button><a style="text-decoration: none; color: black;" href="/">Go Back</a></button>
+
+            <h3>Annotate Image : {{img_obj.name}} </h3>
+
+            <button id="save_image">Save</button>
+
+            <button id="create-polygon">Create Polygon</a></button>
+            <button id="create-rect">Create Rectangle</a></button>
+            <button id="zoom-mode">Zoom Mode</button>
+
+            <div class="can">
+              <canvas id = "c"></canvas>
+            </div>
+
+
+            {% endif %}
+</body>
+<script src="http://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script src="https://code.jquery.com/jquery-migrate-1.4.1.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/1.7.3/fabric.min.js"></script>
+
+<script>
+
+var min = 99;
+var max = 999999;
+var pointArray = new Array();
+var lineArray = new Array();
+var activeLine;
+var activeShape = false;
+//Modes
+var polygonMode = false;
+var rectMode = false;
+var zoomMode = false;
+
+var canvas
+
+
+$(window).load(function(){
+
+
+    prototypefabric.initCanvas();
+
+    //Draw Polygon on click button
+    $('#create-polygon').click(function() {
+        prototypefabric.polygon.drawPolygon();
+        rectMode = false
+    });
+
+    //Draw Rectangle on click button
+    $('#create-rect').click(function() {
+      polygonMode = false
+      rectMode = true
+
+      var rect = new Rectangle(canvas);
+
+    });
+
+    //Save image
+    const download = document.getElementById('save_image');
+
+    download.addEventListener('click', function(e) {
+      console.log(canvas.toDataURL());
+      var link = document.createElement('a');
+      link.download = 'download.png';
+      link.href = canvas.toDataURL();
+      link.click();
+      link.delete;
+    });
+
+    //For zoom Mode Button : we activate and we zoom using mouse
+    $('#zoom-mode').click(function() {
+      zoomMode = !zoomMode
+      zoomFun()
+    })
+
+    //Function of zooming
+  const zoomFun = () => {
+
+        canvas.on('mouse:wheel', function(opt) {
+          if(zoomMode){
+            var delta = opt.e.deltaY;
+            var zoom = canvas.getZoom();
+            zoom *= 0.999 ** delta;
+            if (zoom > 20) zoom = 20;
+           if (zoom < 0.01) zoom = 0.01;
+          // canvas.setZoom(zoom);
+           canvas.zoomToPoint({ x: opt.e.offsetX, y: opt.e.offsetY }, zoom);
+           opt.e.preventDefault();
+            opt.e.stopPropagation();
+
+          }
+
+       })
+
+  }
+
+  zoomFun()
+});
+
+
+var prototypefabric = new function () {
+    this.initCanvas = function () {
+        //Create canvas
+        canvas = window._canvas = new fabric.Canvas('c');
+        // canvas.selection = false;
+
+        canvas.setWidth($(window).width());
+        canvas.setHeight(700);
+
+        // canvas.selection = false;
+
+        var imageUrl = "{{ obj.pic.url}}";
+
+
+
+        // Define
+        canvas.setBackgroundImage(imageUrl, canvas.renderAll.bind(canvas), {
+            // Optionally add an opacity lvl to the image
+            backgroundImageOpacity: 0.5,
+            // should the image be resized to fit the container?
+            backgroundImageStretch: false
+
+        });
+
+
+
+
+        //While moving Polygon
+        canvas.on('mouse:down', function (options) {
+            if(options.target && options.target.id == pointArray[0].id){
+                prototypefabric.polygon.generatePolygon(pointArray);
+            }
+            if(polygonMode){
+                prototypefabric.polygon.addPoint(options);
+            }
+        });
+        canvas.on('mouse:up', function (options) {
+
+        });
+        canvas.on('mouse:move', function (options) {
+            if(activeLine && activeLine.class == "line"){
+                var pointer = canvas.getPointer(options.e);
+                activeLine.set({ x2: pointer.x, y2: pointer.y });
+
+                var points = activeShape.get("points");
+                points[pointArray.length] = {
+                    x:pointer.x,
+                    y:pointer.y
+                }
+                activeShape.set({
+                    points: points
+                });
+                canvas.renderAll();
+            }
+            canvas.renderAll();
+        });
+    };
+};
+
+
+//Drawing polygon
+prototypefabric.polygon = {
+    drawPolygon : function() {
+        polygonMode = true;
+        pointArray = new Array();
+        lineArray = new Array();
+        activeLine;
+    },
+    addPoint : function(options) {
+        var random = Math.floor(Math.random() * (max - min + 1)) + min;
+        var id = new Date().getTime() + random;
+        var pointer = canvas.getPointer(event.e);
+        var posX = pointer.x;
+        var posY = pointer.y;
+        var circle = new fabric.Circle({
+            radius: 5,
+            fill: '#ffffff',
+            stroke: '#333333',
+            strokeWidth: 0.5,
+            left: (posX),
+            top: (posY),
+            selectable: false,
+            hasBorders: false,
+            hasControls: false,
+            originX:'center',
+            originY:'center',
+            id:id,
+                objectCaching:false
+        });
+        if(pointArray.length == 0){
+            circle.set({
+                fill:'red'
+            })
+        }
+        var points = [(posX),(posY),(posX),(posY)];
+        line = new fabric.Line(points, {
+            strokeWidth: 2,
+            fill: '#999999',
+            stroke: 'green',
+            class:'line',
+            originX:'center',
+            originY:'center',
+            selectable: false,
+            hasBorders: false,
+            hasControls: false,
+            evented: false,
+                objectCaching:false
+        });
+        if(activeShape){
+            var pos = canvas.getPointer(options.e);
+            var points = activeShape.get("points");
+            points.push({
+                x: pos.x,
+                y: pos.y
+            });
+            var polygon = new fabric.Polygon(points,{
+                stroke:'#333333',
+                strokeWidth:1,
+                fill: '#cccccc',
+                opacity: 0.3,
+                selectable: false,
+                hasBorders: false,
+                hasControls: false,
+                evented: false,
+                objectCaching:false
+            });
+            canvas.remove(activeShape);
+            canvas.add(polygon);
+            activeShape = polygon;
+            canvas.renderAll();
+        }
+        else{
+            var polyPoint = [{x:(posX),y:(posY)}];
+            var polygon = new fabric.Polygon(polyPoint,{
+                stroke:'#333333',
+                strokeWidth:1,
+                fill: '#cccccc',
+                opacity: 0.3,
+                selectable: false,
+                hasBorders: false,
+                hasControls: false,
+                evented: false,
+                objectCaching:false
+            });
+            activeShape = polygon;
+            canvas.add(polygon);
+        }
+        activeLine = line;
+
+        pointArray.push(circle);
+        lineArray.push(line);
+
+        canvas.add(line);
+        canvas.add(circle);
+        canvas.selection = false;
+    },
+    generatePolygon : function(pointArray){
+        var points = new Array();
+        $.each(pointArray,function(index,point){
+            points.push({
+                x:point.left,
+                y:point.top
+            });
+            canvas.remove(point);
+        });
+        $.each(lineArray,function(index,line){
+            canvas.remove(line);
+        });
+        canvas.remove(activeShape).remove(activeLine);
+        var polygon = new fabric.Polygon(points,{
+            stroke:'green',
+            strokeWidth:4,
+            fill: '#0003',
+            opacity: 1,
+            hasBorders: false,
+            hasControls: false
+        });
+        canvas.add(polygon);
+
+        activeLine = null;
+        activeShape = null;
+        polygonMode = false;
+        canvas.selection = true;
+    }
+};
+
+// Rect Function
+//Drawing rectangle
+var Rectangle = (function () {
+    function Rectangle(canvas) {
+        var inst=this;
+        this.canvas = canvas;
+        this.className= 'Rectangle';
+        this.isDrawing = false;
+        this.bindEvents();
+    }
+
+
+
+	 Rectangle.prototype.bindEvents = function() {
+    var inst = this;
+    inst.canvas.on('mouse:down', function(o) {
+      inst.onMouseDown(o);
+    });
+    inst.canvas.on('mouse:move', function(o) {
+      inst.onMouseMove(o);
+    });
+    inst.canvas.on('mouse:up', function(o) {
+      inst.onMouseUp(o);
+    });
+    inst.canvas.on('object:moving', function(o) {
+      inst.disable();
+    });
+  }
+      Rectangle.prototype.onMouseOver = function (o) {
+      var inst = this;
+      inst.disable();
+    };
+
+    Rectangle.prototype.onMouseUp = function (o) {
+      var inst = this;
+      inst.disable();
+    };
+
+    Rectangle.prototype.onMouseMove = function (o) {
+      var inst = this;
+
+
+      if(!inst.isEnable()){ return; }
+
+      var pointer = inst.canvas.getPointer(o.e);
+      var activeObj = inst.canvas.getActiveObject();
+
+      activeObj.stroke= 'red',
+      activeObj.strokeWidth = 1;
+      activeObj.fill = 'transparent';
+
+      if(origX > pointer.x){
+          activeObj.set({ left: Math.abs(pointer.x) });
+      }
+      if(origY > pointer.y){
+          activeObj.set({ top: Math.abs(pointer.y) });
+      }
+
+      activeObj.set({ width: Math.abs(origX - pointer.x) });
+      activeObj.set({ height: Math.abs(origY - pointer.y) });
+
+      activeObj.setCoords();
+      inst.canvas.renderAll();
+
+    };
+
+    Rectangle.prototype.onMouseDown = function (o) {
+      var inst = this;
+
+      if (rectMode){
+        inst.enable();
+      }else{
+        inst.disable();
+
+        window.deleteObject = function() {
+          canvas.getActiveObject().remove();
+        }
+      }
+
+
+      var pointer = inst.canvas.getPointer(o.e);
+      origX = pointer.x;
+      origY = pointer.y;
+
+    	var rect = new fabric.Rect({
+          left: origX,
+          top: origY,
+          originX: 'left',
+          originY: 'top',
+          width: pointer.x-origX,
+          height: pointer.y-origY,
+          angle: 0,
+          transparentCorners: false,
+          hasBorders: false,
+          hasControls: true,
+          fill:'blue',
+          stroke: 'red'
+      });
+
+
+
+  	  inst.canvas.add(rect).setActiveObject(rect);
+
+      console.log(rect);
+
+      canvas.selection = false
+
+    };
+
+    Rectangle.prototype.isEnable = function(){
+      return this.isDrawing;
+    }
+
+    Rectangle.prototype.enable = function(){
+      this.isDrawing = true;
+    }
+
+    Rectangle.prototype.disable = function(){
+      this.isDrawing = false;
+    }
+
+    return Rectangle;
+}());
+
+
+    </script>
+</html>
