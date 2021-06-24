@@ -6,6 +6,8 @@ To draw my objects I use :
 - Canvas
 - Fabric : Fabric.js is an HTML5 JavaScript canvas library
           =>  It facilitates graphic creation in an HTML <canvas> element
+    
+** Before starting please check requirements.txt !!
 
 To run the program : python manage.py runserver
 
