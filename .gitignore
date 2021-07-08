@@ -2,3 +2,7 @@ venv/
 /bin/
 /target/
 /media/images
+__pycache__
+db.sqlite3
+.vscode*
+.idea/
