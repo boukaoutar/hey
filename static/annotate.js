@@ -39,7 +39,6 @@ function canvasCreation(image)
   const download = document.getElementById('save_image');
   download.addEventListener('click', function(e) 
   {
-    console.log(canvas.toDataURL());
     var link = document.createElement('a');
     link.download = 'download.png';
     link.href = canvas.toDataURL();
@@ -226,8 +225,6 @@ prototypefabric.polygon =
         x: posX,
         y: posY
       });
-      
-      console.log(points,'points')
 
       //Getting the polygon with the coordinations we saved and these instructions for design ( color .. )
       var polygon = new fabric.Polygon(points,
@@ -243,7 +240,6 @@ prototypefabric.polygon =
         objectCaching:false
       });
 
-      console.log(polygon,'polygon')
       canvas.remove(activeShape);
       canvas.add(polygon);
       activeShape = polygon;
@@ -476,9 +472,7 @@ var Rectangle = (function ()
       label:`Rect ${rect_count}`
     });
 
-    console.log(rect)
   	inst.canvas.add(rect).setActiveObject(rect);
-    console.log(coordinations,'ordineates');
     canvas.selection = false
 
   };
@@ -506,11 +500,8 @@ function deleteObj()
 {
   // get active object or active group
   var activeObject = canvas.getActiveObject();
-  console.log(activeObject,'active')
 
   activeGroup = canvas.getActiveGroup();
-  console.log(activeGroup,'group')
-  console.log(canvas,'canvas first')
 
   //if its just one shape you want delete
   if (activeObject) 
@@ -518,7 +509,6 @@ function deleteObj()
     if (confirm('Are you sure?')) 
     {
       canvas.remove(activeObject);
-      console.log(canvas,'canvas')
     }    
   } 
 
@@ -545,8 +535,6 @@ const getData = () =>
   const Data = JSON.parse(JSON.stringify(canvas))
   Data.objects.map((objects, index)=>
   {
-    console.log(objects,'objects');
-
     // check if the object is polygon 
     if (objects.type == 'polygon' && objects.width)
     {
@@ -571,8 +559,6 @@ const getData = () =>
       })
     }
   })
-
-  console.log(coords,'cords');
 
   $("<a />", 
   {
