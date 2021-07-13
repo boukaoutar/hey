@@ -124,6 +124,7 @@ var prototypefabric = new function ()
       {
         var pointer = canvas.getPointer(options.e);
         activeLine.set({ x2: pointer.x, y2: pointer.y });
+
         var points = activeShape.get("points");
         points[pointArray.length] = 
         {
@@ -189,7 +190,8 @@ prototypefabric.polygon =
     }
 
     //Points of polygon
-    var points = [(posX),(posY),(posX),(posY)];
+    var points = [(posX.toFixed(2)),(posY.toFixed(2)),(posX.toFixed(2))
+      ,(posY.toFixed(2))];
 
     //Drawing the lines that connect between the points
     line = new fabric.Line(points, 
@@ -216,11 +218,16 @@ prototypefabric.polygon =
       var points = activeShape.get("points");
 
       //Push that coordinations to the array of points
+      posX = pos.x
+      posY = pos.y
+
       points.push(
       {
-        x: pos.x,
-        y: pos.y
+        x: posX,
+        y: posY
       });
+      
+      console.log(points,'points')
 
       //Getting the polygon with the coordinations we saved and these instructions for design ( color .. )
       var polygon = new fabric.Polygon(points,
@@ -235,6 +242,8 @@ prototypefabric.polygon =
         evented: false,
         objectCaching:false
       });
+
+      console.log(polygon,'polygon')
       canvas.remove(activeShape);
       canvas.add(polygon);
       activeShape = polygon;
@@ -255,13 +264,16 @@ prototypefabric.polygon =
         evented: false,
         objectCaching:false
       });
+
       activeShape = polygon;
       canvas.add(polygon);
     }
 
     activeLine = line;
+
     pointArray.push(circle);
     lineArray.push(line);
+
     canvas.add(line);
     canvas.add(circle);
     canvas.selection = false;
@@ -367,6 +379,7 @@ var Rectangle = (function ()
     { 
       return;
     }
+
     //Get position of cursor
     var pointer = inst.canvas.getPointer(o.e);
     //get the rectangle we just drawed now
@@ -444,6 +457,7 @@ var Rectangle = (function ()
       }
     });
 
+    //Count rectangles
     rect_count += 1
 
     //Parameters of rectangle
@@ -462,8 +476,9 @@ var Rectangle = (function ()
       label:`Rect ${rect_count}`
     });
 
+    console.log(rect)
   	inst.canvas.add(rect).setActiveObject(rect);
-    console.log(coordinations);
+    console.log(coordinations,'ordineates');
     canvas.selection = false
 
   };
@@ -490,15 +505,20 @@ var Rectangle = (function ()
 function deleteObj()
 {
   // get active object or active group
-  var activeObject = canvas.getActiveObject(),
+  var activeObject = canvas.getActiveObject();
+  console.log(activeObject,'active')
+
   activeGroup = canvas.getActiveGroup();
-  
+  console.log(activeGroup,'group')
+  console.log(canvas,'canvas first')
+
   //if its just one shape you want delete
   if (activeObject) 
   {
     if (confirm('Are you sure?')) 
     {
       canvas.remove(activeObject);
+      console.log(canvas,'canvas')
     }    
   } 
 
@@ -525,18 +545,34 @@ const getData = () =>
   const Data = JSON.parse(JSON.stringify(canvas))
   Data.objects.map((objects, index)=>
   {
-    console.log(objects);
-    coords.push(
+    console.log(objects,'objects');
+
+    // check if the object is polygon 
+    if (objects.type == 'polygon' && objects.width)
     {
-      "Shape":`${objects.type} ${index+1}`,
-      "x":objects.left,
-      "y":objects.top,
-      "heigth":objects.height,
-      "width":objects.width
-    })
+      coords.push(
+      {
+        "Shape":`${objects.type} ${index+1}`,
+        'points':objects.points,
+        "heigth":objects.height,
+        "width":objects.width
+      })
+    } 
+    // else push just rectangle points 
+    else if (objects.type=='rectangle' && objects.width)
+    {
+      coords.push(
+      {
+          "Shape":`${objects.type} ${index+1}`,
+          "x":objects.left,
+          "y":objects.top,
+          "heigth":objects.height,
+          "width":objects.width
+      })
+    }
   })
 
-  console.log(coords);
+  console.log(coords,'cords');
 
   $("<a />", 
   {
@@ -546,6 +582,8 @@ const getData = () =>
 
   .click(function() 
   {
+    //For not get duplicate coordinations
+    coords = []
     $(this).remove()
   })[0].click()
 }
