@@ -19,18 +19,21 @@ $(window).load(function(){canvasCreation(image)});
 
 function canvasCreation(image)
 {
-  //Create polygons and deactivate rectangle Mode
+  //Initialize canvas with image
   prototypefabric.initCanvas(image);
-  $('#create-polygon').click(function() 
-  {
-    prototypefabric.polygon.drawPolygon();
+  
+  //Create polygons and deactivate rectangle Mode
+  $('#create-polygon').click(function(){buttonPoly()}); 
+  function buttonPoly(){
+    polygonMode = true
     rectMode = false
-  });
+    prototypefabric.polygon.drawPolygon();
+  };
 
   //Create Rectangles ==> Activate Rectangle mode , and deactivate polygon mode
-  $('#create-rect').click(function() 
+  $('#create-rect').click(function()
   {
-    polygonMode = false
+    buttonPoly();
     rectMode = true
     var rect = new Rectangle(canvas);
   });
@@ -61,13 +64,13 @@ function canvasCreation(image)
     //By using the mouse wheel, you can zoom in and zoom out the image
     canvas.on('mouse:wheel', function(opt) 
     {
-      if(zoomMode)
+      if(canvas.on('mouse:over'))
       {
         var delta = opt.e.deltaY;
         var zoom = canvas.getZoom();
         zoom *= 0.999 ** delta;
         if (zoom > 20) zoom = 20;
-        if (zoom < 0.01) zoom = 0.01;
+        if (zoom < 1) zoom = 1;
         // canvas.setZoom(zoom);
         canvas.zoomToPoint({ x: opt.e.offsetX, y: opt.e.offsetY }, zoom);
         opt.e.preventDefault();
@@ -105,7 +108,7 @@ var prototypefabric = new function ()
       {
         prototypefabric.polygon.generatePolygon(pointArray);
       }
-      if(polygonMode)
+      if(polygonMode && !rectMode)
       {
         prototypefabric.polygon.addPoint(options);
       }
@@ -469,6 +472,7 @@ var Rectangle = (function ()
       transparentCorners: false,
       hasBorders: false,
       hasControls: true,
+      hasRotatingPoint: false,
       label:`Rect ${rect_count}`
     });
 
@@ -526,7 +530,7 @@ function deleteObj()
     }
   }
 }
-          
+
 //Getting coordinations of shapes in json file
 var coords = []
 
@@ -563,7 +567,7 @@ const getData = () =>
   $("<a />", 
   {
     "download": "data.json",
-    "href" : "data:application/json," + encodeURIComponent(JSON.stringify(coords))
+    "href" : "data:application/json," + encodeURIComponent(JSON.stringify(coords,null, ' '))
   }).appendTo("body")
 
   .click(function() 
