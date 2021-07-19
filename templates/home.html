@@ -3,48 +3,53 @@
 <head>
     <meta charset="UTF-8">
     <title>WeDiagnostiX</title>
+
     {% load static %}
 </head>
 
 <style>
-   canvas
-   {
-    border: 1px solid black;
+   canvas{
+     border: 2px solid black;
    }
+
 </style>
-
 <body>
-    <center> <h1> Image processing </h1> </center>
+    <center> <h1> Image </h1> </center>
 
-    <form action="." method="post" enctype="multipart/form-data">
-      {% csrf_token %}
-      {{form.as_p}}
-      <input name="submit" type="submit" id="mybutton" class="btn btn-lg btn-success"> </input>
-    </form>
+      <form action="." method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            {{form.as_p}}
+            <input name="submit" type="submit" id="mybutton" class="btn btn-lg btn-success"> </input>
+      </form>
 
-    {% if obj %}
-      <button> <a style="text-decoration: none; color: black;" href="/">Go Back</a> </button>
-      <h3> Succesfully uploaded : {{img_obj.name}} </h3>
-      <button id="save_image"> Save </button>
-      <button id="json-data"> Json </button>
-      <button id="create-polygon"> Create Polygon </a></button>
-      <button id="create-rect"> Create Rectangle </a></button>
-      <button id="zoom-mode"> Zoom Mode </button>
-      <button onClick="deleteObj()"> Clear </button>
+            {% if obj %}
+            <button><a style="text-decoration: none; color: black;" href="/">Go Back</a></button>
 
-      <div class="can">
-        <canvas id = "c"> </canvas>
-      </div>
-    {% endif %}
+            <h3>Succesfully uploaded : {{img_obj.name}}</h3>
+
+            <button id="save_image">Save</button>
+            <button id="json-data">Json</button>
+            <button id="create-polygon">Create Polygon</a></button>
+            <button id="create-rect">Create Rectangle</a></button>
+            <!-- <button id="zoom-mode">Zoom Mode</button> -->
+            <button id="clearr" onClick="deleteObj()" >Clear</button>
+
+            <div class="can">
+              <canvas id = "c" width="1300"; height="600"></canvas>
+            </div>
+
+
+            {% endif %}
 </body>
-
 <script src="http://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 <script src="https://code.jquery.com/jquery-migrate-1.4.1.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/1.7.3/fabric.min.js"></script>
+
+
 <script type="text/javascript">
     var image = "{{obj.pic.url}}";
 </script>
-<script src="{% static 'annotate.js' %}"></script>
 
+<script src="{% static 'annotate.js' %}"></script>
 </html>

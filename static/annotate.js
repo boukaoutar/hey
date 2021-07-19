@@ -64,17 +64,33 @@ function canvasCreation(image)
     //By using the mouse wheel, you can zoom in and zoom out the image
     canvas.on('mouse:wheel', function(opt) 
     {
-      if(canvas.on('mouse:over'))
+      var delta = opt.e.deltaY;
+      var zoom = canvas.getZoom();
+      zoom = zoom + delta / 200;
+
+      if (zoom > 20) zoom = 20;
+      if (zoom < 1) zoom = 1;
+
+      canvas.zoomToPoint({ x: opt.e.offsetX, y: opt.e.offsetY }, zoom);
+      opt.e.preventDefault();
+      opt.e.stopPropagation();
+
+      var vpt = this.viewportTransform;
+
+      if (vpt[4] >= 0) 
       {
-        var delta = opt.e.deltaY;
-        var zoom = canvas.getZoom();
-        zoom *= 0.999 ** delta;
-        if (zoom > 20) zoom = 20;
-        if (zoom < 1) zoom = 1;
-        // canvas.setZoom(zoom);
-        canvas.zoomToPoint({ x: opt.e.offsetX, y: opt.e.offsetY }, zoom);
-        opt.e.preventDefault();
-        opt.e.stopPropagation();
+        this.viewportTransform[4] = 0;
+      } else if (vpt[4] < canvas.getWidth() - imgWidth * zoom) 
+      {
+        this.viewportTransform[4] = canvas.getWidth() - imgWidth * zoom;
+      }
+      if (vpt[5] >= 0) 
+      {
+        this.viewportTransform[5] = 0;
+      } 
+      else if (vpt[5] < canvas.getHeight() - imgHeight * zoom) 
+      {
+        this.viewportTransform[5] = canvas.getHeight() - imgHeight * zoom;
       }
     })
   }
@@ -88,17 +104,19 @@ var prototypefabric = new function ()
   {
     canvas = window._canvas = new fabric.Canvas('c');
 
-    // set width and height for showing image in canvas
-    canvas.setWidth(1300);
-    canvas.setHeight(600);
-
-    // Showing image in canvas and set parametrs of that picture
-    canvas.setBackgroundImage(imageUrl, canvas.renderAll.bind(canvas), 
+    fabric.Image.fromURL(imageUrl, function (img) 
     {
-      width: canvas.width,
-      height: canvas.height,
-      originX: 'left',
-      originY: 'top'
+      canvas.setBackgroundImage(img, function () 
+      {
+        // use rendeAll() for a recursion calling, for the transformation 
+        canvas.renderAll();
+        imgWidth = img.width * img.scaleX;
+        imgHeight = img.height * img.scaleY;
+      }, 
+      {
+        scaleX: canvas.width / img.width,
+        scaleY: canvas.height / img.height
+      });
     });
 
     // mousedown is triggered from an Element while the cursor is over the place
@@ -388,6 +406,23 @@ var Rectangle = (function ()
     activeObj.stroke= '#FFFF00',
     activeObj.strokeWidth = 1;
     activeObj.fill = 'transparent';
+    //Border
+    activeObj.opacity = 0.3;
+    activeObj.hasRotatingPoint = false
+    activeObj.myCustomOptionKeepStrokeWidth = 2
+
+    canvas.on(
+    {
+      'object:scaling': function (e) 
+      {
+        var obj = e.target;
+        if (obj.myCustomOptionKeepStrokeWidth) 
+        {
+          var newStrokeWidth = obj.myCustomOptionKeepStrokeWidth / ((obj.scaleX + obj.scaleY) / 2);
+          obj.set('strokeWidth', newStrokeWidth);
+        }
+      }
+      });
 
     if(origX > pointer.x)
     {
