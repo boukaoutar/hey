@@ -1,55 +1,132 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <title>WeDiagnostiX</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 
-    {% load static %}
-</head>
+  <title>WeDiagnostiX</title>
+  
+  <style>
+    input[type='text'] 
+    {
+      background: rgb(255, 255, 255);
+      border: 2px solid rgb(224, 224, 224);
+      padding: 7px;
+      border-radius: 20px;
+    }
 
-<style>
-   canvas{
-     border: 2px solid black;
-   }
+    input:focus 
+    {
+      outline: none;
+    }
 
-</style>
+    .col2 
+    {
+      flex: 1;
+      text-align: center;
+      width: 100%;
+    }
+
+    .col1 
+    {
+      flex: 3;
+      width: 500px !important;
+    }
+
+    .canvas-container 
+    {
+      display: flex;
+      flex-wrap: wrap;
+    }
+
+    button 
+    {
+      background: rgb(255, 255, 255);
+      padding: 5px;
+      border-radius: 15px;
+      border: 1px solid black;
+      margin: 10px;
+    }
+
+    form input:focus 
+    {
+      outline: none;
+    }
+
+    center 
+    {
+      font-family: Arial, Helvetica, sans-serif;
+      margin-top: 50px;
+    }
+
+    .form input[type='submit'] 
+    {
+      width: 50%;
+      height: 35px;
+    }
+
+    .form input[type='file'] 
+    {
+      background: rgb(245, 245, 245);
+      padding: 5px;
+      border-radius: 20px;
+    }
+
+    .form input 
+    {
+      width: 100%;
+      margin: auto;
+      border-radius: 20px;
+      height: 25px;
+      border: 2px solid rgb(219, 219, 219);
+    }
+
+    .form 
+    {
+      width: 400px;
+      margin: auto;
+    }
+
+    body 
+    {
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    canvas 
+    {
+      border: 1px solid black;
+    }
+  </style>
+
+  {% load static %}
+
 <body>
-    <center> <h1> Image </h1> </center>
+  <center>
+    <h1> Image processing</h1>
+  </center>
 
-      <form action="." method="post" enctype="multipart/form-data">
-            {% csrf_token %}
-            {{form.as_p}}
-            <input name="submit" type="submit" id="mybutton" class="btn btn-lg btn-success"> </input>
-      </form>
+  <form action="." method="post" enctype="multipart/form-data" class="form">
+    {% csrf_token %}
+    {{form.as_p}}
 
-            {% if obj %}
-            <button><a style="text-decoration: none; color: black;" href="/">Go Back</a></button>
+    <div style="text-align: center;">
+      <input name="submit" type="submit" id="mybutton" class="btn btn-lg btn-success"> </input>
+    </div>
+  </form>
 
-            <h3>Succesfully uploaded : {{img_obj.name}}</h3>
-
-            <button id="save_image">Save</button>
-            <button id="json-data">Json</button>
-            <button id="create-polygon">Create Polygon</a></button>
-            <button id="create-rect">Create Rectangle</a></button>
-            <!-- <button id="zoom-mode">Zoom Mode</button> -->
-            <button id="clearr" onClick="deleteObj()" >Clear</button>
-
-            <div class="can">
-              <canvas id = "c" width="1300"; height="600"></canvas>
-            </div>
-
-
-            {% endif %}
+  {% block content %}
+  {% endblock content %}
+  
 </body>
-<script src="http://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+
+<script src="http://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8="
+  crossorigin="anonymous"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 <script src="https://code.jquery.com/jquery-migrate-1.4.1.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/1.7.3/fabric.min.js"></script>
-
-
-<script type="text/javascript">
-    var image = "{{obj.pic.url}}";
-</script>
-
 <script src="{% static 'annotate.js' %}"></script>
+
 </html>
