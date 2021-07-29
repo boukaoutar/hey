@@ -6,6 +6,11 @@ from jsonfield import JSONField
 class Upload(models.Model):
     name = models.CharField(null=True,max_length=25)
     pic = models.ImageField(null=True,upload_to="images/")
+    json_data = json_data = JSONField(
+        null=True,
+        default=[{"pos": {"x": 696, "y": 235, "width": 105, "height": 160}, "type": "anatomy", "subtype": 38},
+                 {"pos": {"x": 727, "y": 339, "width": 130, "height": 185}, "type": "anatomy", "subtype": 38},
+                 {"pos": {"x": 825, "y": 353, "width": 102, "height": 208}, "type": "treatment", "subtype": 30}])
 
     def __str__(self):
         return self.name

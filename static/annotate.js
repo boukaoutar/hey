@@ -632,3 +632,36 @@ function category(value,key,type)
   key = key
   types = type
 }
+
+function display_rectangle_from_json_data(json_data){
+  for (let i in json_data) {
+    let annotation = json_data[i];
+
+    let left = annotation['pos']['x'];
+    let top = annotation['pos']['y'];
+    let width = annotation['pos']['width'];
+    let height = annotation['pos']['height'];
+    let type = annotation["type"];
+    let subtype = annotation["subtype"];
+
+    // Create the rectangles with  particular class, so they can be identified and removed
+
+  }
+}
+
+function remove_rectangle_from_json_data(){
+  // remove them
+}
+
+function display_json_data(json_data) {
+  // Get the checkbox
+  var checkBox = document.getElementById("json-data-checkbox");
+
+  // If the checkbox is checked, display the rectangle from json_data
+  if (checkBox.checked == true){
+    // display rectangles IF json_data exists
+    display_rectangle_from_json_data(json_data);
+  } else {
+    // remove rectangles
+  }
+} 
