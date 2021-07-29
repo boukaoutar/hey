@@ -1,7 +1,7 @@
 from django.http import HttpResponse
 from django.shortcuts import render, redirect
 from .form import UploadForm
-from .models import Upload, Labels
+from .models import Upload, Category
 from django.views.generic import ListView
 
 
@@ -26,37 +26,37 @@ def home(request):
 #for separeate canvas
 def dashboard(request):
     if request.method == 'POST':
-        data = request.POST.get('label')
-        labels = Labels.objects.create(label=data)
-        labels.save()
+        data = request.POST.get('translations')
+        category = Category.objects.create(translations=data)
+        category.save()
         return redirect('dashboard')
 
     img = Upload.objects.last()
-    labels = Labels.objects.all().order_by('-id')
+    category = Category.objects.all().order_by('-id')
 
     context = {
         'img':img,
-        'labels':labels
+        'category':category
     }
     return render(request,'dashboard.html',context)
 
 #For labels
-def labels(request):
+def category(request):
     if request.method == 'POST':
-        data = request.POST.get('labels')
-        labels = Labels.objects.create(label=data)
-        labels.save()
+        data = request.POST.get('category')
+        category = Category.objects.create(translations=data)
+        category.save()
         print(data)
 
     return redirect('/')
 
-#For deleting a label by getting its ID
-def delete_label(request, label_id):
-    #Get id we select and delete
-    label = Labels.objects.get(pk=label_id)
-    label.delete()
-    #redirect back
-    return redirect('dashboard')
+# #For deleting a label by getting its ID
+# def delete_label(request, label_id):
+#     #Get id we select and delete
+#     label = Labels.objects.get(pk=label_id)
+#     label.delete()
+#     #redirect back
+#     return redirect('dashboard')
 
 """ #Searching for a label to be easy
 def search_label(request):

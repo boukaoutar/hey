@@ -297,7 +297,7 @@ prototypefabric.polygon =
       {
         x: point.left,
         y: point.top,
-        label:label,
+        translations:translations,
       });
       canvas.remove(point);
     });
@@ -467,14 +467,14 @@ var Rectangle = (function ()
       {
         this.callSuper('initialize', element, options);
         options && this.set('lockUniScaling', options.lockUniScaling);
-        options && this.set('label', options.label || '');
+        options && this.set('translations', options.translations || '');
       },
 
       toObject: function () 
       {
         return fabric.util.object.extend(this.callSuper('toObject'), 
         {
-          label: this.label,
+          translations: this.translations,
           lockUniScaling: this.lockUniScaling
         });
       },
@@ -484,7 +484,7 @@ var Rectangle = (function ()
         this.callSuper('_render', ctx);
         ctx.font = '15px Times';
         ctx.fillStyle = '#0040FF';
-        ctx.fillText(this.label, -this.width / 2 + 4, -this.height / 2 + 20);
+        ctx.fillText(this.translations, -this.width / 2 + 4, -this.height / 2 + 20);
       }
     });
 
@@ -504,7 +504,8 @@ var Rectangle = (function ()
       hasBorders: false,
       hasControls: true,
       hasRotatingPoint: false,
-      label:label  
+      translations:translations,
+      key:key,
     });
 
     inst.canvas.add(rect).setActiveObject(rect);
@@ -565,6 +566,7 @@ function deleteObj()
 //Getting coordinations of shapes in json file
 var coords = []
 
+
 const getData = () => 
 {
   const Data = JSON.parse(JSON.stringify(canvas))
@@ -572,10 +574,13 @@ const getData = () =>
   {
     // check if the object is polygon or not, because the shape is different 
     if (objects.type == 'rectangle' && objects.width) 
+    
     {
       coords.push(
       {
-        "Shape": `${objects.label}`,
+        "Shape": `${objects.translations}`,
+        "Type" : types,
+        "Key" :`${objects.keys}`,
         "x": objects.left,
         "y": objects.top,
         "heigth": objects.height,
@@ -587,7 +592,9 @@ const getData = () =>
     {
       coords.push(
       {
-        "Shape": `Polygon ${objects.points[0].label}`,
+        "Shape": `Polygon ${objects.points[0].translations}`,
+        "Type" : objects.types,
+        "Key" : keys,
         'points': objects.points,
         "heigth": objects.height,
         "width": objects.width
@@ -614,8 +621,14 @@ $('#json-data').click(function ()
   getData()
 })
 
-let label = 'Rect'
-function labels(value)
+let translations = 'Rect'
+let key = ' '
+let types = ' '
+
+// taking value and key from django template
+function category(value,key,type)
 {
-  label = value
+  translations = value
+  key = key
+  types = type
 }

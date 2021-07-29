@@ -1,6 +1,6 @@
 from django.db import models
 from datetime import datetime, date
-
+from jsonfield import JSONField
 # Create your models here.
 
 class Upload(models.Model):
@@ -10,8 +10,34 @@ class Upload(models.Model):
     def __str__(self):
         return self.name
 
-class Labels(models.Model):
-    label = models.CharField(max_length=50)
-
-    def __str__(self) -> str:
-        return self.label
+class Category(models.Model):
+    """
+    This object represents a of detection with the informations:
+    - type: Treatment, Disease or Anatomy depending on what is detected
+    - key: for an image, it is the nth object of type
+    - translations: informations formated to JSON
+    - position_type: Tooth, General or None, dentist stuff
+    - show_on_report: True (default) if the detection should be on the report, else False
+    - show_on_image: True (default) if the detection should be on the image, else False
+    - show_julie: True (default)
+    """
+    TYPES = (
+        ('TREATMENT', 'Treatment'),
+        ('DISEASE', 'Disease'),
+        ('ANATOMY', 'Anatomy')
+    )
+    POSITION_TYPE = (
+        ('TOOTH', 'Tooth'),
+        ('GENERAL', 'General'),
+        ("NONE", 'None')
+    )
+    type = models.CharField(max_length=24, choices=TYPES)
+    key = models.IntegerField(null=False, blank=False)
+    translations = JSONField(default=dict)
+    position_type = models.CharField(max_length=16, choices=POSITION_TYPE, default='NONE')
+    show_on_report = models.BooleanField(default=True)
+    show_on_image = models.BooleanField(default=True)
+    show_julie = models.BooleanField(default=True)
+   
+    def __str__(self):
+        return f'{self.type} {self.key}: {self.translations}'

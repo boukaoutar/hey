@@ -2,9 +2,7 @@
 {% load static %}
 
 {% block content %}
-<button>
-  <a style="text-decoration: none; color: black;" href="/">Go Back</a>
-</button>
+<button><a style="text-decoration: none; color: black;" href="/">Go Back</a></button>
 
 <h3>Succesfully uploaded : {{img.name}}</h3>
 
@@ -30,27 +28,31 @@
       <button class="btnn"><i class="fa fa-search"></i></button>
     </form> {% endcomment %}
 
-    <form action="{% url 'dashboard' %}" method="POST">
+    <form action="{% url 'dashboard' %}" id='post-form' method="POST">
       {% csrf_token %}
-      <input type="text" name="label" >
+      <input type="text" id="translations" name="translations" >
       <button class="btnn"><i class="fa fa-plus"></i></button>
     </form>
 
     <div class="scroller">
-      {% for label in labels %}
-        <p class="labels" onclick="labels('{{label.label}}')">{{label.label}}</p>
+      {% for translations in category %}
+      <!-- change the p tags value -->
+        <p class="category" onclick="category('{{translations.translations.FR}}','{{translations.key}}','{{translations.type}}')">{{translations.translations.FR}}</p>
         
-        <a id="delete_item" class="btn btn-danger" href="{% url 'delete-label' label.id %}" aria-label="Delete">
+        {% comment %} <a id="delete_item" class="btn btn-danger" href="{% url 'delete-label' label.id %}" aria-label="Delete">
           <i class="fa fa-trash-o" aria-hidden="true"></i>
-        </a>
+        </a> {% endcomment %}
       {% endfor %}
 
       {% comment %} {% if searched %}
         <p class="labels" >{{searched}}</p>
       {% endif %} {% endcomment %}
     </div>
+    
   </div>
+
 </div>
+
 
 <script type="text/javascript">
   var image = "{{img.pic.url}}";
@@ -72,56 +74,48 @@
     margin-top: 32px;
     margin-right : 50px;
   }
-  .labels:hover
-  {
+  .category:hover{
     background:rgb(250, 238, 238);
   }
-  .labels
-  {
+  .category{
     border: 1px solid black;
     padding: 1px;
     float: left;
-    margin-left: 50px;
+    margin-left: 70px;
     width: 50%;
     border-radius: 25px;
     cursor: pointer;
     margin-top: 30px;
   }
-  input[type='text'] 
-  {
+  input[type='text'] {
     background: rgb(255, 255, 255);
     border: 2px solid rgb(224, 224, 224);
     padding: 7px;
     border-radius: 20px;
-    margin-left: -80px;
+    margin-left: -100px;
   }
 
-  input:focus 
-  {
+  input:focus {
     outline: none;
   }
 
-  .col2 
-  {
+  .col2 {
     flex: 1;
     text-align: center;
     width: 100%;
   }
 
-  .col1 
-  {
+  .col1 {
     flex: 3;
     width: 500px !important;
   }
 
-  .canvas-container 
-  {
+  .canvas-container {
     display: flex;
     flex-wrap: wrap;
   }
 
-  .btnn 
-  {
+  .btnn {
   background-color: DodgerBlue;
   border: none;
   color: white;
@@ -131,37 +125,31 @@
   }
 
   /* Darker background on mouse-over */
-  .btnn:hover 
-  {
+  .btnn:hover {
     background-color: RoyalBlue;
   }
 
-  form input:focus 
-  {
+  form input:focus {
     outline: none;
   }
 
-  center 
-  {
+  center {
     font-family: Arial, Helvetica, sans-serif;
     margin-top: 50px;
   }
 
-  .form input[type='submit'] 
-  {
+  .form input[type='submit'] {
     width: 50%;
     height: 35px;
   }
 
-  .form input[type='file'] 
-  {
+  .form input[type='file'] {
     background: rgb(245, 245, 245);
     padding: 5px;
     border-radius: 20px;
   }
 
-  .form input 
-  {
+  .form input {
     width: 100%;
     margin: auto;
     border-radius: 20px;
@@ -169,14 +157,12 @@
     border: 2px solid rgb(219, 219, 219);
   }
 
-  .form 
-  {
+  .form {
     width: 400px;
     margin: auto;
   }
 
-  body 
-  {
+  body {
     font-family: Arial, Helvetica, sans-serif;
   }
 </style>
