@@ -298,6 +298,8 @@ prototypefabric.polygon =
         x: point.left,
         y: point.top,
         translations:translations,
+        key:key,
+        types:types,
       });
       canvas.remove(point);
     });
@@ -468,6 +470,8 @@ var Rectangle = (function ()
         this.callSuper('initialize', element, options);
         options && this.set('lockUniScaling', options.lockUniScaling);
         options && this.set('translations', options.translations || '');
+        options && this.set('key', options.key || '');
+        options && this.set('types', options.types || '');
       },
 
       toObject: function () 
@@ -475,6 +479,8 @@ var Rectangle = (function ()
         return fabric.util.object.extend(this.callSuper('toObject'), 
         {
           translations: this.translations,
+          key: this.key,
+          types: this.types,
           lockUniScaling: this.lockUniScaling
         });
       },
@@ -506,6 +512,7 @@ var Rectangle = (function ()
       hasRotatingPoint: false,
       translations:translations,
       key:key,
+      types:types,
     });
 
     inst.canvas.add(rect).setActiveObject(rect);
@@ -574,13 +581,12 @@ const getData = () =>
   {
     // check if the object is polygon or not, because the shape is different 
     if (objects.type == 'rectangle' && objects.width) 
-    
     {
       coords.push(
       {
         "Shape": `${objects.translations}`,
-        "Type" : types,
-        "Key" :`${objects.keys}`,
+        "Type" : `${objects.types}`,
+        "Key" :`${objects.key}`,
         "x": objects.left,
         "y": objects.top,
         "heigth": objects.height,
@@ -593,8 +599,8 @@ const getData = () =>
       coords.push(
       {
         "Shape": `Polygon ${objects.points[0].translations}`,
-        "Type" : objects.types,
-        "Key" : keys,
+        "Type" : `${objects.points[0].types}`,
+        "Key" : `${objects.points[0].key}`,
         'points': objects.points,
         "heigth": objects.height,
         "width": objects.width
@@ -622,13 +628,13 @@ $('#json-data').click(function ()
 })
 
 let translations = 'Rect'
-let key = ' '
-let types = ' '
+var key 
+var types 
 
-// taking value and key from django template
-function category(value,key,type)
+// taking value and key and type from django template
+function category(value,key,types)
 {
   translations = value
-  key = key
-  types = type
+  window.key = key
+  window.types = types
 }

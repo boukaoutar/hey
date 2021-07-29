@@ -30,19 +30,20 @@
 
     <form action="{% url 'dashboard' %}" id='post-form' method="POST">
       {% csrf_token %}
-      <input type="text" id="translations" name="translations" >
-      <button class="btnn"><i class="fa fa-plus"></i></button>
+      <input type="text" id="searchbar" >
+      <span id="filter-count"></span>
+     <!-- <button class="btnn"><i class="fa fa-plus"></i></button> --> 
     </form>
 
-    <div class="scroller">
-      {% for translations in category %}
+    <div class="scroller" id="box">
+      {% for c in categories %}
       <!-- change the p tags value -->
-        <p class="category" onclick="category('{{translations.translations.FR}}','{{translations.key}}','{{translations.type}}')">{{translations.translations.FR}}</p>
+        <p class="category" onclick="category('{{c.translations.FR}}','{{c.key}}','{{c.type}}')">{{c.translations.FR}}</p>
         
         {% comment %} <a id="delete_item" class="btn btn-danger" href="{% url 'delete-label' label.id %}" aria-label="Delete">
           <i class="fa fa-trash-o" aria-hidden="true"></i>
         </a> {% endcomment %}
-      {% endfor %}
+      {% endfor %} 
 
       {% comment %} {% if searched %}
         <p class="labels" >{{searched}}</p>
@@ -55,7 +56,49 @@
 
 
 <script type="text/javascript">
-  var image = "{{img.pic.url}}";
+  //image we use it in annotate.js for showing it in canvas
+  var image = "{{img.pic.url}}"
+  //A list tran for saving our filtiring
+  var tran = []
+  
+  // getting from data traslations.FR 
+  {% for c in categories %}
+
+    var dict =
+    {
+      type: "{{c.type}}",
+      key : {{c.key}},
+      translations: "{{c.translations.FR}}", 
+    }
+
+    tran.push(dict)
+  {% endfor %}
+
+console.log(tran)
+console.log(tran[0])
+console.log(tran[0].translations)
+
+  // Getting Id of input
+  const searchbar = document.getElementById('searchbar')
+
+  //When user a key is up 
+  searchbar.addEventListener('keyup',(e) => 
+  {
+    //deleting what is in div #box
+    document.getElementById('box').innerHTML = "";
+    //Saving value of input in variable
+    var searchString = searchbar.value
+    // getting what user type and no problem if its Lower Or Upper case
+    var filteredCharacters = tran.filter (item => item.translations.toLowerCase().includes(searchString.toLowerCase()))
+    
+    //Showing the filters
+    for (let  i in filteredCharacters) 
+    {
+      var c = filteredCharacters[i]
+         $('#box').append('<p class="category" onclick="category(`' + c.translations + '`,`' + c.type + '`,' + c.key + ')">' + c.translations + '</p>')
+     
+    }
+  });
 </script>
 
 <style scoped>

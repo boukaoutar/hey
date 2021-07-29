@@ -2,8 +2,6 @@ from django.http import HttpResponse
 from django.shortcuts import render, redirect
 from .form import UploadForm
 from .models import Upload, Category
-from django.views.generic import ListView
-
 
 # Create your views here.
 # Homepage
@@ -27,16 +25,16 @@ def home(request):
 def dashboard(request):
     if request.method == 'POST':
         data = request.POST.get('translations')
-        category = Category.objects.create(translations=data)
-        category.save()
+        categories = Category.objects.create(translations=data)
+        categories.save()
         return redirect('dashboard')
 
     img = Upload.objects.last()
-    category = Category.objects.all().order_by('-id')
+    categories = Category.objects.all().order_by('-id')
 
     context = {
         'img':img,
-        'category':category
+        'categories':categories
     }
     return render(request,'dashboard.html',context)
 
