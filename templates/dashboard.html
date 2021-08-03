@@ -11,11 +11,12 @@
 <button id="create-polygon">Create Polygon</a></button>
 <button id="create-rect">Create Rectangle</a></button>
 <button id="clear" onClick="deleteObj()">Clear</button>
+<input type="checkbox" id="json-data-checkbox" onclick="display_json_data({{img.json_data}})">
 
 <div class="canvas-container">
 
-  <div class="col1">
-    <div class="can">
+  <div class="col1" id="col1">
+    <div class="can" id = "can">
       <canvas id="c" width="1100" height="600"></canvas>
     </div>
   </div>
@@ -74,6 +75,137 @@
       }
     });
   });
+
+
+//Using CheckBox Display Rectangles from JSON data
+function display_rectangle_from_json_data(json_data) 
+{
+  for (let i in json_data) 
+  {
+    var checkedlabel;
+
+    let annotation = json_data[i];
+
+    let left = annotation["pos"]["x"];
+    let top = annotation["pos"]["y"];
+    let width = annotation["pos"]["width"];
+    let height = annotation["pos"]["height"];
+    let type = annotation["type"];
+    let subtype = annotation["subtype"];
+    
+    {% for c in categories %}
+    //Dictionnary for getting properties of each label
+    var di =
+    {
+      type: "{{c.type}}",
+      key : {{c.key}},
+      translations: "{{c.translations.FR}}", 
+    }
+    
+    if (subtype == di.key && type.toUpperCase() == di.type.toUpperCase())
+    {
+      checkedlabel = di.translations;
+    }
+    {% endfor %}
+
+    // Create the rectangles with  particular class, so they can be identified and removed
+    fabric.Writebox = fabric.util.createClass(fabric.Rect, 
+    {
+      type: "rectangle",
+      initialize: function (element, options) 
+      {
+        this.callSuper("initialize", element, options);
+        options && this.set("lockUniScaling", options.lockUniScaling);
+        options && this.set("translations", options.translations || "");
+        options && this.set("key", options.key || "");
+        options && this.set("types", options.types || "");
+      },
+
+      toObject: function () 
+      {
+        return fabric.util.object.extend(this.callSuper("toObject"), 
+        {
+          translations: this.translations,
+          key: this.key,
+          types: this.types,
+          lockUniScaling: this.lockUniScaling,
+        });
+      },
+
+      _render: function (ctx) 
+      {
+        this.callSuper("_render", ctx);
+        ctx.font = "15px Times";
+        ctx.fillStyle = "red";
+        ctx.fillText(
+          this.translations,
+          -this.width / 2 + 4,
+          -this.height / 2 + 20
+        );
+      },
+    });
+
+    var rect = new fabric.Writebox(
+    {
+      left: left,
+      top: top,
+      originX: "left",
+      originY: "top",
+      width: width,
+      height: height,
+      angle: 0,
+      transparentCorners: false,
+      hasBorders: false,
+      hasControls: true,
+      hasRotatingPoint: false,
+      translations: checkedlabel,
+      key: subtype,
+      types: type,
+    });
+
+    (rect.stroke = "red"), (rect.strokeWidth = 2);
+    rect.fill = "transparent";
+    //Border
+    rect.opacity = 0.8;
+    rect.hasRotatingPoint = false;
+    rect.myCustomOptionKeepStrokeWidth = 2;
+    checkedRects.push(rect);
+
+    canvas.add(rect);
+  }
+}
+
+//Uncheck the box
+function remove_rectangle_from_json_data()
+ {
+  if (checkedRects.length > 0) 
+  {
+    for (let i in checkedRects) 
+    {
+      canvas.remove(checkedRects[i]);
+    }
+    checkedRects = new Array();
+  }
+}
+
+//Show Data from JSON
+function display_json_data(json_data) 
+{
+  // Get the checkbox
+  var checkBox = document.getElementById("json-data-checkbox");
+
+  // If the checkbox is checked, display the rectangle from json_data
+  if (checkBox.checked == true) 
+  {
+    // display rectangles IF json_data exists
+    display_rectangle_from_json_data(json_data);
+  }
+  else 
+  {
+    // remove rectangles
+    remove_rectangle_from_json_data();
+  }
+}
 
 </script>
 
