@@ -1,62 +1,58 @@
 var min = 99;
 var max = 999999;
-var canvas
+var canvas;
 //Drawing Mode & Zoom
 var polygonMode = false;
 var rectMode = false;
-var zoomMode = false
+var zoomMode = false;
 //Array of points and lines of the polygon
 var pointArray = new Array();
 var lineArray = new Array();
-//To know which line is been just drawed by the user 
+//To know which line is been just drawed by the user
 var activeLine;
 //To Know which shape we are selecting
 var activeShape = false;
 
-var checkedRects = [];
 
 //event is fired after whole content is loaded
-$(window).load(function (){canvasCreation(image)});
+$(window).load(function () 
+{ 
+  
+  canvasCreation(image);
+});
 
-function canvasCreation(image)
+
+function canvasCreation(image) 
 {
   //Initialize canvas with image
   prototypefabric.initCanvas(image);
-
+  
   //Create polygons and deactivate rectangle Mode
-  $('#create-polygon').click(function(){buttonPoly()});
-
-  function buttonPoly()
+  $("#create-polygon").click(function () 
   {
-    polygonMode = true
-    rectMode = false
+    buttonPoly();
+  });
+
+  function buttonPoly() 
+  {
+    polygonMode = true;
+    rectMode = false;
     prototypefabric.polygon.drawPolygon();
   }
 
   //Create Rectangles ==> Activate Rectangle mode , and deactivate polygon mode
-  $('#create-rect').click(function()
+  $("#create-rect").click(function () 
   {
     buttonPoly();
-    rectMode = true
+    rectMode = true;
     var rect = new Rectangle(canvas);
-  });
-
-  //download the image with all the objects the user has drawn on it, under the name : download.png
-  const download = document.getElementById('save_image');
-  download.addEventListener('click', function(e) 
-  {
-    var link = document.createElement('a');
-    link.download = 'download.png';
-    link.href = canvas.toDataURL();
-    link.click();
-    link.delete;
   });
 
   //Function For zoom in picture
   const zoomFun = () => 
   {
     //By using the mouse wheel, you can zoom in and zoom out the image
-    canvas.on('mouse:wheel', function(opt) 
+    canvas.on("mouse:wheel", function (opt) 
     {
       var delta = opt.e.deltaY;
       var zoom = canvas.getZoom();
@@ -70,26 +66,27 @@ function canvasCreation(image)
       opt.e.stopPropagation();
 
       var vpt = this.viewportTransform;
-
+      
       if (vpt[4] >= 0) 
       {
         this.viewportTransform[4] = 0;
-      } else if (vpt[4] < canvas.getWidth() - imgWidth * zoom) 
+      }
+      else if (vpt[4] < canvas.getWidth() - imgWidth * zoom) 
       {
         this.viewportTransform[4] = canvas.getWidth() - imgWidth * zoom;
       }
       if (vpt[5] >= 0) 
       {
         this.viewportTransform[5] = 0;
-      } 
+      }
       else if (vpt[5] < canvas.getHeight() - imgHeight * zoom) 
       {
         this.viewportTransform[5] = canvas.getHeight() - imgHeight * zoom;
       }
-    })
-  }
-  zoomFun()
-};
+    });
+  };
+  zoomFun();
+}
 
 //A function  assigned to a variable prototypefabric
 var prototypefabric = new (function () 
@@ -98,51 +95,50 @@ var prototypefabric = new (function ()
   // see the zoomFun code to better understanding
   this.initCanvas = function (imageUrl) 
   {
-    canvas = window._canvas = new fabric.Canvas('c');
+    canvas = window._canvas = new fabric.Canvas("annotation-canvas");
 
     fabric.Image.fromURL(imageUrl, function (img) 
     {
-      canvas.setBackgroundImage(img, function () 
-      {
-        // use rendeAll() for a recursion calling, for the transformation 
-        canvas.renderAll();
-        imgWidth = img.width * img.scaleX;
-        imgHeight = img.height * img.scaleY;
-      }, 
-      {
-        scaleX: canvas.width / img.width,
-        scaleY: canvas.height / img.height
-      });
+      canvas.setBackgroundImage(img,function () 
+        {
+          // use rendeAll() for a recursion calling, for the transformation
+          canvas.renderAll();
+          img_width = img.width;
+          img_height = img.height;
+          imgWidth = img.width * img.scaleX;
+          imgHeight = img.height * img.scaleY;
+        },
+        {
+          scaleX: canvas.width / img.width,
+          scaleY: canvas.height / img.height,
+        });
     });
 
     // mousedown is triggered from an Element while the cursor is over the place
-    canvas.on('mouse:down', function (options) 
+    canvas.on("mouse:down", function (options) 
     {
-      if(options.target && options.target.id == pointArray[0].id)
+      if (options.target && options.target.id == pointArray[0].id) 
       {
         prototypefabric.polygon.generatePolygon(pointArray);
       }
-      if(polygonMode && !rectMode)
+      if (polygonMode && !rectMode) 
       {
         prototypefabric.polygon.addPoint(options);
       }
       else 
       {
-        //iF User didnt finish drawing polygon and he click on Draw Rectangle
         // Removing all the lines in that belong to the active shape (Polygon)
         var lines = canvas.getObjects("line");
         for (let i in lines) 
         {
           canvas.remove(lines[i]);
         }
-        
         // Removing all the circles (points) in that belong to the active shape (Polygon)
         var circles = canvas.getObjects("circle");
         for (let i in circles) 
         {
           canvas.remove(circles[i]);
         }
-      
         // Remove the active shape and the active line
         canvas.remove(activeShape).remove(activeLine);
         // reset everything to not active
@@ -154,14 +150,62 @@ var prototypefabric = new (function ()
     });
 
     // While the cursor is released
-    canvas.on('mouse:up', function (options) 
+    canvas.on("mouse:up", function (options) {});
+
+    // While object is selected
+    canvas.on("object:selected", function (options) 
     {
+      // Check if the selected object is the polygon
+      if (options.target.get("type") === "group") 
+      {
+        // Change the stroke color
+        options.target._objects[0].set({stroke: "#FFFF00",});
+      }
+      else if (options.target.hasOwnProperty("translations")) 
+      {
+        // If it is a rectangle, cange stroke color
+        rect = canvas.getActiveObject();
+        rect.set({ stroke: "#FFFF00" });
+        rect.dirty = true;
+        canvas.renderAll();
+      }
+      // Get all teh objects
+      var allObj = canvas.getObjects();
+      // Go through all the objects
+      allObj.forEach(function (obj) 
+      {
+        // Check if the object is selected
+        if (obj.active === false) 
+        {
+          // Check if it is a rectangle
+          if (obj.hasOwnProperty("translations")) 
+          {
+            // Check if is it part of the rectangles from the json data
+            if (checkedRects.includes(obj)) 
+            {
+              obj.set({ stroke: "red" });
+            }
+            else 
+            {
+              obj.set({ stroke: "#0040FF" });
+            }
+            obj.dirty = true;
+            canvas.renderAll();
+          }
+          else 
+          {
+            //  Change stroke for polygon
+            obj._objects[0].set({ stroke: "#00FFFF",});
+            obj._objects[1].set({ stroke: "#000000",});
+          }
+        }
+      });
     });
 
     //While the cursor is moving : draw the points and lines that connect between them to get our polygon
-    canvas.on('mouse:move', function (options) 
+    canvas.on("mouse:move", function (options) 
     {
-      if(activeLine && activeLine.class == "line")
+      if (activeLine && activeLine.class == "line") 
       {
         var pointer = canvas.getPointer(options.e);
         activeLine.set({ x2: pointer.x, y2: pointer.y });
@@ -169,12 +213,12 @@ var prototypefabric = new (function ()
         var points = activeShape.get("points");
         points[pointArray.length] = 
         {
-          x:pointer.x,
-          y:pointer.y
-        }
+          x: pointer.x,
+          y: pointer.y,
+        };
         activeShape.set(
         {
-          points: points
+          points: points,
         });
         canvas.renderAll();
       }
@@ -186,8 +230,8 @@ var prototypefabric = new (function ()
 //Polygon instructions : For Drawing POLYGONS
 prototypefabric.polygon = 
 {
-  //Drawing polygons : Activate the mode and making an array for each of lines and points 
-  drawPolygon : function() 
+  //Drawing polygons : Activate the mode and making an array for each of lines and points
+  drawPolygon: function () 
   {
     polygonMode = true;
     pointArray = new Array();
@@ -207,27 +251,25 @@ prototypefabric.polygon =
     var circle = new fabric.Circle(
     {
       radius: 5,
-      fill: '#ffffff',
-      stroke: '#333333',
+      fill: "#ffffff",
+      stroke: "#333333",
       strokeWidth: 0.1,
-      left: (posX),
-      top: (posY),
+      left: posX,
+      top: posY,
       selectable: false,
       hasBorders: false,
       hasControls: false,
       hasRotatingPoint: false,
-      originX: 'center',
-      originY: 'center',
+      originX: "center",
+      originY: "center",
       id: id,
       objectCaching: false,
     });
-    
-    if (pointArray.length == 0) {
+
+    if (pointArray.length == 0) 
+    {
       //First point user make for polygon will be red until he finish drawing by clicking on it at the end
-      circle.set(
-      {
-        fill: 'red'
-      })
+      circle.set({fill: "red",});
     }
 
     //Points of polygon
@@ -237,17 +279,17 @@ prototypefabric.polygon =
     line = new fabric.Line(points, 
     {
       strokeWidth: 1,
-      fill: '#999999',
-      stroke: 'green',
-      class:'line',
-      originX:'center',
-      originY:'center',
+      fill: "#999999",
+      stroke: "green",
+      class: "line",
+      originX: "center",
+      originY: "center",
       selectable: false,
       hasBorders: false,
       hasControls: false,
       hasRotatingPoint: false,
       evented: false,
-      objectCaching:false
+      objectCaching: false,
     });
 
     //Getting the coordinations and making them in array
@@ -259,8 +301,8 @@ prototypefabric.polygon =
       var points = activeShape.get("points");
 
       //Push that coordinations to the array of points
-      posX = Math.round(pos.x)
-      posY = Math.round(pos.y)
+      posX = Math.round(pos.x);
+      posY = Math.round(pos.y);
 
       points.push(
       {
@@ -269,20 +311,20 @@ prototypefabric.polygon =
       });
 
       //Getting the polygon with the coordinations we saved and these instructions for design ( color .. )
-      var polygon = new fabric.Polygon(points,
+      var polygon = new fabric.Polygon(points, 
       {
-        stroke:'#333333',
-        strokeWidth:1,
-        fill: '#cccccc',
+        stroke: "#333333",
+        strokeWidth: 1,
+        fill: "#cccccc",
         opacity: 0.5,
         selectable: false,
         hasBorders: false,
         hasControls: false,
         hasRotatingPoint: false,
         evented: false,
-        objectCaching:false
+        objectCaching: false,
       });
-      
+
       canvas.remove(activeShape);
       canvas.add(polygon);
       activeShape = polygon;
@@ -293,16 +335,16 @@ prototypefabric.polygon =
       var polyPoint = [{ x: posX, y: posY }];
       var polygon = new fabric.Polygon(polyPoint, 
       {
-        stroke:'#333333',
-        strokeWidth:0.5,
-        fill: '#cccccc',
+        stroke: "#333333",
+        strokeWidth: 0.5,
+        fill: "#cccccc",
         opacity: 0,
         selectable: false,
         hasBorders: false,
         hasControls: false,
         hasRotatingPoint: false,
         evented: false,
-        objectCaching:false
+        objectCaching: false,
       });
 
       activeShape = polygon;
@@ -319,7 +361,7 @@ prototypefabric.polygon =
     canvas.selection = false;
   },
 
-  //Finish drawing the whole polygon 
+  //Finish drawing the whole polygon
   generatePolygon: function (pointArray) 
   {
     var points = new Array();
@@ -329,7 +371,7 @@ prototypefabric.polygon =
     {
       points.push(
       {
-        x: point.left,
+        x: point.left ,
         y: point.top,
       });
       ally.push(point.top);
@@ -344,21 +386,19 @@ prototypefabric.polygon =
 
     canvas.remove(activeShape).remove(activeLine);
 
+    // Create the polygon from the given points
     var polygon = new fabric.Polygon(points, 
     {
-      stroke: '#00FFFF',
-      strokeWidth:2,
-      fill: '#0000',
+      stroke: "#00FFFF",
+      strokeWidth: 2,
+      fill: "#0000",
       opacity: 1,
       hasBorders: false,
       hasControls: false,
-      hasRotatingPoint: false,
-      key:key,
-      types:types
     });
 
     // Create the text label from translations
-    var label = new fabric.Text(translations,
+    var label = new fabric.Text(polyTranslations, 
     {
       top: ally.reduce((a, b) => a + b) / ally.length,
       left: allx.reduce((a, b) => a + b) / allx.length,
@@ -368,22 +408,15 @@ prototypefabric.polygon =
       hasControls: false,
       originX: "center",
       originY: "center",
-      hasRotatingPoint: false,
-      key:key,
-      types:types,
     });
 
     // Group them together.
-    var group = new fabric.Group([polygon, label], {
-      hasRotatingPoint: false,
-      key:key,
-      types:types,
-    });
+    var group = new fabric.Group([polygon, label], {});
 
     // Add the group to the canvas
     canvas.add(group);
 
-    //Nothing is active anymore just the polygone we draw now 
+    //Nothing is active anymore just the polygone we draw now
     activeLine = null;
     activeShape = null;
     polygonMode = false;
@@ -393,14 +426,14 @@ prototypefabric.polygon =
 
 // Rectangle Function
 var rect_count = 0;
-var coordinations = []
+var coordinations = [];
 var Rectangle = (function () 
 {
   function Rectangle(canvas) 
   {
     var inst = this;
     this.canvas = canvas;
-    this.className = 'Rectangle';
+    this.className = "Rectangle";
     this.isDrawing = false;
     this.bindEvents();
   }
@@ -408,23 +441,23 @@ var Rectangle = (function ()
   Rectangle.prototype.bindEvents = function () 
   {
     var inst = this;
-    inst.canvas.on('mouse:down', function (o) 
+    inst.canvas.on("mouse:down", function (o) 
     {
       inst.onMouseDown(o);
     });
-    inst.canvas.on('mouse:move', function (o) 
+    inst.canvas.on("mouse:move", function (o) 
     {
       inst.onMouseMove(o);
     });
-    inst.canvas.on('mouse:up', function (o) 
+    inst.canvas.on("mouse:up", function (o) 
     {
       inst.onMouseUp(o);
     });
-    inst.canvas.on('object:moving', function (o) 
+    inst.canvas.on("object:moving", function (o) 
     {
       inst.disable();
     });
-  }
+  };
 
   Rectangle.prototype.onMouseOver = function (o) 
   {
@@ -436,16 +469,18 @@ var Rectangle = (function ()
   {
     var inst = this;
     inst.disable();
+    rect = canvas.getActiveObject();
+    rect.set({ dirty: true, stroke: "#FFFF00" });
+    inst.canvas.renderAll();
   };
 
   Rectangle.prototype.onMouseMove = function (o) 
   {
     var inst = this;
 
-
     if (!inst.isEnable()) 
-    { 
-      return; 
+    {
+      return;
     }
 
     //Get position of cursor
@@ -454,29 +489,31 @@ var Rectangle = (function ()
     var activeObj = inst.canvas.getActiveObject();
 
     //Color of the rectangle and width
-    activeObj.stroke= '#0040FF',
-    activeObj.strokeWidth = 2;
-    activeObj.fill = 'transparent';
+    (activeObj.stroke = "#0040FF"), (activeObj.strokeWidth = 2);
+    activeObj.fill = "transparent";
     //Border
     activeObj.opacity = 0.8;
-    activeObj.hasRotatingPoint = false
-    activeObj.myCustomOptionKeepStrokeWidth = 2
+    activeObj.hasRotatingPoint = false;
+    activeObj.myCustomOptionKeepStrokeWidth = 2;
 
     canvas.on(
     {
-      'object:scaling': function (e) 
+      "object:scaling": function (e) 
       {
         var obj = e.target;
         if (obj.myCustomOptionKeepStrokeWidth) 
         {
-          var newStrokeWidth = obj.myCustomOptionKeepStrokeWidth / ((obj.scaleX + obj.scaleY) / 2);
-          obj.set('strokeWidth', newStrokeWidth);
+          var newStrokeWidth =
+            obj.myCustomOptionKeepStrokeWidth / ((obj.scaleX + obj.scaleY) / 2);
+          obj.set("strokeWidth", newStrokeWidth);
         }
-         
+        obj.width = parseFloat(obj.width) * parseFloat(obj.scaleX);
+        obj.scaleX = 1;
+            
+        obj.height = parseFloat(obj.height) * parseFloat(obj.scaleY);  
+        obj.scaleY = 1;
       },
     });
-
-    
 
     if (origX > pointer.x) 
     {
@@ -489,18 +526,17 @@ var Rectangle = (function ()
     }
 
     activeObj.set(
-    { 
-      width: Math.abs(Math.round(origX - pointer.x)) 
+    {
+      width: Math.abs(Math.round(origX - pointer.x)),
     });
 
     activeObj.set(
-    { 
-      height: Math.abs(Math.round(origY - pointer.y)) 
+    {
+      height: Math.abs(Math.round(origY - pointer.y)),
     });
 
     activeObj.setCoords();
     inst.canvas.renderAll();
-
   };
 
   Rectangle.prototype.onMouseDown = function (o) 
@@ -517,58 +553,59 @@ var Rectangle = (function ()
       window.deleteObject = function () 
       {
         canvas.getActiveObject().remove();
-      }
+      };
     }
 
     var pointer = inst.canvas.getPointer(o.e);
     origX = Math.round(pointer.x);
     origY = Math.round(pointer.y);
 
-
     //Add labels to rectangles
     fabric.Writebox = fabric.util.createClass(fabric.Rect, 
     {
-      type: 'rectangle',
+      type: "rectangle",
       initialize: function (element, options) 
       {
-        this.callSuper('initialize', element, options);
-        options && this.set('lockUniScaling', options.lockUniScaling);
-        options && this.set('translations', options.translations || '');
-        options && this.set('key', options.key || '');
-        options && this.set('types', options.types || '');
+        this.callSuper("initialize", element, options);
+        options && this.set("lockUniScaling", options.lockUniScaling);
+        options && this.set("translations", options.translations || "");
+        options && this.set("key", options.key || "");
+        options && this.set("types", options.types || "");
       },
 
       toObject: function () 
       {
-        return fabric.util.object.extend(this.callSuper('toObject'), 
+        return fabric.util.object.extend(this.callSuper("toObject"), 
         {
           translations: this.translations,
           key: this.key,
           types: this.types,
-          lockUniScaling: this.lockUniScaling
+          lockUniScaling: this.lockUniScaling,
         });
       },
 
       _render: function (ctx) 
       {
-        this.callSuper('_render', ctx);
-        
-        ctx.font = '15px Times';
-        ctx.fillStyle = '#0040FF';
-        ctx.fillText(this.translations, -this.width / 2 + 4, -this.height / 2 + 20); 
-      }
-
+        this.callSuper("_render", ctx);
+        ctx.font = "15px Times";
+        ctx.fillStyle = "#0040FF";
+        ctx.fillText(
+          this.translations,
+          -this.width / 2 + 4,
+          -this.height / 2 + 20
+        );
+      },
     });
 
     //Count rectangles
-    rect_count += 1
+    rect_count += 1;
 
     var rect = new fabric.Writebox(
     {
       left: Math.round(origX),
       top: Math.round(origY),
-      originX: 'left',
-      originY: 'top',
+      originX: "left",
+      originY: "top",
       width: Math.round(pointer.x - origX),
       height: Math.round(pointer.y - origY),
       angle: 0,
@@ -576,58 +613,54 @@ var Rectangle = (function ()
       hasBorders: false,
       hasControls: true,
       hasRotatingPoint: false,
-      translations:translations,
-      fontSize: 16,
-      key:key,
-      types:types,
-      fixedWidth: Math.round(pointer.x - origX),
+      translations: rectTranslations,
+      key: rectKey,
+      types: rectTypes,
     });
 
-    
     inst.canvas.add(rect).setActiveObject(rect);
-    canvas.selection = false
-
+    canvas.selection = false;
   };
 
   Rectangle.prototype.isEnable = function () 
   {
     return this.isDrawing;
-  }
+  };
 
   Rectangle.prototype.enable = function () 
   {
     this.isDrawing = true;
-  }
+  };
 
   Rectangle.prototype.disable = function () 
   {
     this.isDrawing = false;
-  }  
+  };
 
   return Rectangle;
-}());
+})();
 
 //delete selected object
 function deleteObj() 
 {
   // get active object or active group
   var activeObject = canvas.getActiveObject();
-  
+
   activeGroup = canvas.getActiveGroup();
-  
+
   //if its just one shape you want delete
-  if (activeObject)
+  if (activeObject) 
   {
-    if (confirm('Are you sure?')) 
+    if (confirm("Are you sure?")) 
     {
       canvas.remove(activeObject);
-    } 
-  } 
+    }
+  }
 
   //if there is a group of shapes you want delete
   else if (activeGroup) 
   {
-    if (confirm('Are you sure?')) 
+    if (confirm("Are you sure?")) 
     {
       var objectsInGroup = activeGroup.getObjects();
       canvas.discardActiveGroup();
@@ -639,77 +672,112 @@ function deleteObj()
   }
 }
 
-//Getting coordinations of shapes in json file
-var coords = []
 
+//Getting coordinations of shapes in json file
+var coords = [];
 
 const getData = () => 
 {
-  const Data = JSON.parse(JSON.stringify(canvas))
-  Data.objects.map((objects, index) => 
+  
+  const Data = canvas.getObjects();
+  // const Data = JSON.parse(JSON.stringify(canvas));
+  Data.map((objects, index) => 
   {
-    // check if the object is polygon or not, because the shape is different 
-    if (objects.type == 'rectangle' && objects.width) 
+    // check if the object is polygon or not, because the shape is different
+    if (objects.type == "rectangle" && objects.width) 
     {
+      //console.log(img_width)
+      //console.log(img_height)
       coords.push(
-      {
-        pos: [
-        { 
-          x: objects.left,
-          y: objects.top,
-          height: objects.height,
-          width: objects.width,  
-        }],
-        "Type" : `${objects.types}`,
-        "Subtype" :`${objects.key}`
-      })
+      { 
+        pos: [{ x: Math.round(objects.left * img_width / canvas.getWidth()),
+                y: Math.round(objects.top * img_height / canvas.getHeight()), 
+                width: Math.round(objects.width* img_width / canvas.getWidth()), 
+                height: Math.round(objects.height* img_width / canvas.getHeight()) }],
+        Type: `${objects.types}`,
+        Subtype: `${objects.key}`,
+      });
     }
     // else push just polygon points
-    else if(objects.type == "group" && objects.width) 
+    else if (objects.type == "group" && objects.width) 
     {
-      coords.push(
+      console.log(objects._objects[0].points)
+      
+      for (coor in objects._objects[0].points) 
       {
-        'pos': objects.objects[0].points,
-        //"Shape": `Polygon ${objects.objects[1].text}`,
-        "Type":types,
-        "Subtype":key,
-        //"width": objects.objects[0].width,
-        //"heigth": objects.objects[0].height,
-      })
+        console.log(objects._objects[0].points[coor].x)
+        
+        coords.push(
+        {
+          pos: [{ x: Math.round(objects._objects[0].points[coor].x * img_width / canvas.getWidth()),
+                  y: Math.round(objects._objects[0].points[coor].y * img_height / canvas.getHeight()) }],
+          Types: polyTypes,
+          Subtype: polyKey,
+        });
+      }
     }
-  })
+  });
 
   $("<a />", 
   {
-    "download": "data.json",
-    "href": "data:application/json," + encodeURIComponent(JSON.stringify(coords,null, ' '))
+    download: "data.json",
+    href:
+      "data:application/json," +
+      encodeURIComponent(JSON.stringify(coords, null, " ")),
   }).appendTo("body")
 
   .click(function () 
   {
-    // for not duplicating the things 
-    coords = []
-    $(this).remove()
-  })[0].click()
-}
+    // for not duplicating the things
+    coords = [];
+    $(this).remove();
+  })[0].click();
+};
 
-$('#json-data').click(function () 
+$("#json-data").click(function () 
 {
-  getData()
-})
+  getData();
+});
 
-let translations = 'Rect'
-var key 
-var types 
+let rectTranslations = "Rect";
+var rectKey;
+var rectTypes;
+
+let polyTranslations = "Polygon";
+var polyKey;
+var polyTypes;
 
 // taking value and key and type from django template
-function category(value,types,key)
+function category(value, types, key) 
 {
-  translations = value
-  window.key = key
-  window.types = types
-}
+  // Check if an object has been selected
+  if (canvas.getActiveObject() !== null) 
+  {
+    active = canvas.getActiveObject();
+    // check if it is a rectangle or group (polygon)
+    if (active.hasOwnProperty("translations")) 
+    {
+      // If rectangle, change it's values
+      active.set({ translations: value, key: key, types: types });
+      rectTranslations = value;
+      window.rectKey = key;
+      window.rectTypes = types;
+      active.dirty = true;
+      canvas.renderAll();
+    }
+    else 
+    {
+      // If polygon, change it's values
+      active._objects[1].setText(value);
 
+      active.dirty = true;
+      polyTranslations = value;
+      window.polyKey = key;
+      window.polyTypes = types;
+      canvas.renderAll();
+    }
+  }
+}
 //Deselect the active shape when we click outside the canvas
 var ignoreClickOnMeElement = document.getElementById('can');
 

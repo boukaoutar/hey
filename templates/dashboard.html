@@ -17,7 +17,7 @@
 
   <div class="col1" id="col1">
     <div class="can" id = "can">
-      <canvas id="c" width="1100" height="600"></canvas>
+      <canvas id="annotation-canvas" width="1100" height="600"></canvas>
     </div>
   </div>
 
@@ -26,7 +26,6 @@
       {% csrf_token %}
       <input type="text" id="searchbar" >
     </form>
-
     <div class="scroller" id="box"> </div> 
   </div>
 
@@ -38,6 +37,8 @@
   var image = "{{img.pic.url}}"
   //A list tran for saving our filtiring
   var tran = []
+  //Rects when we Check box
+  var checkedRects = [];
   
   // getting from data traslations.FR 
   {% for c in categories %}
@@ -76,13 +77,14 @@
     });
   });
 
-
 //Using CheckBox Display Rectangles from JSON data
 function display_rectangle_from_json_data(json_data) 
 {
+  
   for (let i in json_data) 
   {
     var checkedlabel;
+    
 
     let annotation = json_data[i];
 
@@ -94,18 +96,18 @@ function display_rectangle_from_json_data(json_data)
     let subtype = annotation["subtype"];
     
     {% for c in categories %}
-    //Dictionnary for getting properties of each label
-    var di =
-    {
-      type: "{{c.type}}",
-      key : {{c.key}},
-      translations: "{{c.translations.FR}}", 
-    }
-    
-    if (subtype == di.key && type.toUpperCase() == di.type.toUpperCase())
-    {
-      checkedlabel = di.translations;
-    }
+      //Dictionnary for getting properties of each label
+      var dictionnary =
+      {
+        type: "{{c.type}}",
+        key : {{c.key}},
+        translations: "{{c.translations.FR}}", 
+      }
+      
+      if (subtype == dictionnary.key && type.toUpperCase() == dictionnary.type.toUpperCase())
+      {
+        checkedlabel = dictionnary.translations;
+      }
     {% endfor %}
 
     // Create the rectangles with  particular class, so they can be identified and removed
@@ -149,8 +151,8 @@ function display_rectangle_from_json_data(json_data)
     {
       left: left,
       top: top,
-      originX: "left",
-      originY: "top",
+      originX: 'left',
+      originY: 'top',
       width: width,
       height: height,
       angle: 0,
@@ -174,6 +176,7 @@ function display_rectangle_from_json_data(json_data)
     canvas.add(rect);
   }
 }
+
 
 //Uncheck the box
 function remove_rectangle_from_json_data()
