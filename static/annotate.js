@@ -15,11 +15,7 @@ var activeShape = false;
 
 
 //event is fired after whole content is loaded
-$(window).load(function () 
-{ 
-  
-  canvasCreation(image);
-});
+$(window).load(function () { canvasCreation(image); });
 
 
 function canvasCreation(image) 
@@ -678,7 +674,6 @@ var coords = [];
 
 const getData = () => 
 {
-  
   const Data = canvas.getObjects();
   // const Data = JSON.parse(JSON.stringify(canvas));
   Data.map((objects, index) => 
@@ -686,8 +681,6 @@ const getData = () =>
     // check if the object is polygon or not, because the shape is different
     if (objects.type == "rectangle" && objects.width) 
     {
-      //console.log(img_width)
-      //console.log(img_height)
       coords.push(
       { 
         pos: [{ x: Math.round(objects.left * img_width / canvas.getWidth()),
@@ -701,20 +694,26 @@ const getData = () =>
     // else push just polygon points
     else if (objects.type == "group" && objects.width) 
     {
-      console.log(objects._objects[0].points)
-      
+      var json_points = []
+
+      //Get every x,y of points and stock them to json_points
       for (coor in objects._objects[0].points) 
       {
-        console.log(objects._objects[0].points[coor].x)
-        
-        coords.push(
+        var coord_x = Math.round(objects._objects[0].points[coor].x * img_width / canvas.getWidth());
+        var coord_y = Math.round(objects._objects[0].points[coor].y * img_height / canvas.getHeight());
+
+        json_points.push(
         {
-          pos: [{ x: Math.round(objects._objects[0].points[coor].x * img_width / canvas.getWidth()),
-                  y: Math.round(objects._objects[0].points[coor].y * img_height / canvas.getHeight()) }],
-          Types: polyTypes,
-          Subtype: polyKey,
+          x: coord_x,
+          y : coord_y,
         });
       }
+      coords.push(
+      {
+        pos: json_points,
+        Type: objects._objects[0].types,
+        Subtype: objects._objects[0].key,
+      });
     }
   });
 
@@ -722,8 +721,7 @@ const getData = () =>
   {
     download: "data.json",
     href:
-      "data:application/json," +
-      encodeURIComponent(JSON.stringify(coords, null, " ")),
+      "data:application/json," +encodeURIComponent(JSON.stringify(coords, null, " ")),
   }).appendTo("body")
 
   .click(function () 
@@ -769,7 +767,8 @@ function category(value, types, key)
     {
       // If polygon, change it's values
       active._objects[1].setText(value);
-
+      active._objects[0].set("key", key);
+      active._objects[0].set("types", types);
       active.dirty = true;
       polyTranslations = value;
       window.polyKey = key;

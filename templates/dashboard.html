@@ -2,17 +2,24 @@
 {% load static %}
 
 {% block content %}
-<button><a style="text-decoration: none; color: black;" href="/">Go Back</a></button>
+<button><a style="text-decoration: none; color: black;" href="/" ">Go Back</a></button>
 
-<h3>Succesfully uploaded : {{img.name}}</h3>
+<div style="margin-top: 90px;"> </div>
+<div id="button_div">
+  <button class="button controls" id="save_image"> <span> Télécharger </span> </button>
+  <button class="button controls" id="json-data"><span> Fichier JSON </span></button>
+  <button class="button controls" id="create-polygon"><span> Créer Polygone </span></a></button>
+  <button class="button controls" id="create-rect"><span> Créer Rectangle </span></a></button>
+  <button class="button controls" id="clear" onClick="deleteObj()"><span> Effacer </span></button>
 
-<button id="save_image">Save</button>
-<button id="json-data">Json</button>
-<button id="create-polygon">Create Polygon</a></button>
-<button id="create-rect">Create Rectangle</a></button>
-<button id="clear" onClick="deleteObj()">Clear</button>
-<input type="checkbox" id="json-data-checkbox" onclick="display_json_data({{img.json_data}})">
+  <input type="checkbox" class="json-data-checkbox" id="json-data-checkbox" onclick="display_json_data({{img.json_data}})">
 
+  <label for="json-data-checkbox">
+      <span class="switch-label off">Analyse d'IA </span>
+      <span class="switch-label on">Analyse d'IA </span>
+      <span class="grip"></span>
+  </label>
+</div>
 <div class="canvas-container">
 
   <div class="col1" id="col1">
@@ -21,13 +28,30 @@
     </div>
   </div>
 
+  
   <div class="col2">
     <form action="{% url 'dashboard' %}" id='post-form' method="POST">
       {% csrf_token %}
-      <input type="text" id="searchbar" >
+      <div class="search_now">
+        <div>
+          <input type="text" placeholder="Rechercher ..." id="searchbar" >
+        </div>
+      </div>
     </form>
+
+    <div class="categ_filter">
+      <input class="input_filter" name="category_list" id="treatment" type="radio" ">
+      <label class="label_filter" for="treatment">TREATMENT</label>
+
+      <input class="input_filter"  name="category_list" id="anatomy" type="radio" ">
+      <label class="label_filter" for="anatomy">ANATOMY</label>
+
+      <input class="input_filter" name="category_list" id="disease" type="radio" ">
+      <label class="label_filter" for="disease">DISEASE</label>
+    </div>
     <div class="scroller" id="box"> </div> 
   </div>
+
 
 </div>
 
@@ -72,7 +96,7 @@
       for (let  i in filteredCharacters) 
       {
         var c = filteredCharacters[i]
-        $('#box').append('<p class="category" onclick="category(`' + c.translations + '`,`' + c.type + '`,' + c.key + ')">' + c.translations + '</p>')
+        $('#box').append('<button class="button category" onclick="category(`' + c.translations + '`,`' + c.type + '`,' + c.key + ')">' + c.translations + '</button>')
       }
     });
   });
@@ -208,6 +232,22 @@ function display_json_data(json_data)
     // remove rectangles
     remove_rectangle_from_json_data();
   }
+}
+
+// Add active class to the current button (highlight it when it is selected)
+var header = document.getElementById("button_div");
+var btns = header.getElementsByClassName("button controls");
+for (var i = 0; i < btns.length; i++) 
+{
+  btns[i].addEventListener("click", function() 
+  {
+  var current = document.getElementsByClassName("active");
+  if (current.length > 0) 
+  { 
+    current[0].className = current[0].className.replace(" active", "");
+  }
+  this.className += " active";
+  });
 }
 
 </script>
