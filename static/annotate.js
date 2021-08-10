@@ -497,12 +497,7 @@ var Rectangle = (function ()
       "object:scaling": function (e) 
       {
         var obj = e.target;
-        if (obj.myCustomOptionKeepStrokeWidth) 
-        {
-          var newStrokeWidth =
-            obj.myCustomOptionKeepStrokeWidth / ((obj.scaleX + obj.scaleY) / 2);
-          obj.set("strokeWidth", newStrokeWidth);
-        }
+        
         obj.width = parseFloat(obj.width) * parseFloat(obj.scaleX);
         obj.scaleX = 1;
             
@@ -610,6 +605,7 @@ var Rectangle = (function ()
       hasControls: true,
       hasRotatingPoint: false,
       translations: rectTranslations,
+      noScaleCache: false,
       key: rectKey,
       types: rectTypes,
     });

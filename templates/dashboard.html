@@ -40,15 +40,16 @@
     </form>
 
     <div class="categ_filter">
-      <input class="input_filter" name="category_list" id="treatment" type="radio" ">
+      <input class="input_filter" name="category_list" id="treatment" type="radio" onclick="display_treatment()" ">
       <label class="label_filter" for="treatment">TREATMENT</label>
 
-      <input class="input_filter"  name="category_list" id="anatomy" type="radio" ">
+      <input class="input_filter"  name="category_list" id="anatomy" type="radio" onclick="display_anatomy()" ">
       <label class="label_filter" for="anatomy">ANATOMY</label>
 
-      <input class="input_filter" name="category_list" id="disease" type="radio" ">
+      <input class="input_filter" name="category_list" id="disease" type="radio" onclick="display_disease()" ">
       <label class="label_filter" for="disease">DISEASE</label>
     </div>
+
     <div class="scroller" id="box"> </div> 
   </div>
 
@@ -57,6 +58,7 @@
 
 
 <script type="text/javascript">
+
   //image we use it in annotate.js for showing it in canvas
   var image = "{{img.pic.url}}"
   //A list tran for saving our filtiring
@@ -248,6 +250,38 @@ for (var i = 0; i < btns.length; i++)
   }
   this.className += " active";
   });
+}
+
+// Show just Treatment Category
+function display_treatment()
+{
+  var treatment_categ = "TREATMENT"
+  //var list = []
+  var tab = []
+
+
+  {% for c in categories %}
+    //Dictionnary for getting properties of each label
+    var dictionnary =
+    {
+      type: "{{c.type}}",
+      key : {{c.key}},
+      translations: "{{c.translations.FR}}", 
+    }
+  
+    if (dictionnary.type.toUpperCase() == treatment_categ.toUpperCase())
+    {
+      tab.push(dictionnary)
+    }
+    
+  {% endfor %} 
+
+  for (let  i in tab) 
+  {
+    var c = tab[i]
+    $('#box').append('<button class="button category" onclick="category(`' + tab[i].translations + '`,`' + tab[i].type + '`,' + tab[i].key + ')">' + tab[i].translations + '</button>')
+  } 
+    
 }
 
 </script>
