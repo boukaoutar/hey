@@ -220,12 +220,6 @@ var prototypefabric = new (function ()
       canvas.renderAll();
     });
 
-    $('#undo').click(function() {
-        replay(undo, redo, '#redo', this);
-      });
-      $('#redo').click(function() {
-        replay(redo, undo, '#undo', this);
-      })
   };
 })();
 
