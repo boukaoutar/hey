@@ -19,6 +19,12 @@
       <span class="switch-label on">Analyse d'IA </span>
       <span class="grip"></span>
   </label>
+
+  <form id="myform" method="post" action="{% url 'update_rects_values' %}">
+    {% csrf_token %}
+    <input type="hidden" id="rects_values" name="rects_values" value="[]" />
+</form>
+
 </div>
 <div class="canvas-container">
 
@@ -107,7 +113,7 @@
 //Using CheckBox Display Rectangles from JSON data
 function display_rectangle_from_json_data(json_data) 
 {
-  
+  console.log(json_data)
   for (let i in json_data) 
   {
     var checkedlabel;
@@ -121,7 +127,7 @@ function display_rectangle_from_json_data(json_data)
     let height = annotation["pos"]["height"];
     let type = annotation["type"];
     let subtype = annotation["subtype"];
-    
+
     {% for c in categories %}
       //Dictionnary for getting properties of each label
       var dictionnary =
@@ -130,7 +136,6 @@ function display_rectangle_from_json_data(json_data)
         key : {{c.key}},
         translations: "{{c.translations.FR}}", 
       }
-      
       if (subtype == dictionnary.key && type.toUpperCase() == dictionnary.type.toUpperCase())
       {
         checkedlabel = dictionnary.translations;
@@ -208,6 +213,23 @@ function display_rectangle_from_json_data(json_data)
 //Uncheck the box
 function remove_rectangle_from_json_data()
  {
+    const dataArr = new Array()
+   for (let i in checkedRects) {
+    dataArr.push(
+      {
+        pos: {
+          x:checkedRects[i].left, 
+          y: checkedRects[i].top, 
+          width: checkedRects[i].width * checkedRects[i].scaleX, 
+          height: checkedRects[i].height * checkedRects[i].scaleY,
+        },
+        subtype: checkedRects[i].key,
+        type: checkedRects[i].types
+      }
+    )
+   }
+   document.getElementById("rects_values").value = JSON.stringify(dataArr);
+   document.forms["myform"].submit()
   if (checkedRects.length > 0) 
   {
     for (let i in checkedRects) 
