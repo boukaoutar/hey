@@ -17,7 +17,6 @@ var activeShape = false;
 //event is fired after whole content is loaded
 $(window).load(function () { canvasCreation(image); });
 
-
 function canvasCreation(image) 
 {
   //Initialize canvas with image
@@ -220,6 +219,13 @@ var prototypefabric = new (function ()
       }
       canvas.renderAll();
     });
+
+    $('#undo').click(function() {
+        replay(undo, redo, '#redo', this);
+      });
+      $('#redo').click(function() {
+        replay(redo, undo, '#undo', this);
+      })
   };
 })();
 
@@ -664,7 +670,6 @@ function deleteObj()
   }
 }
 
-
 //Getting coordinations of shapes in json file
 var coords = [];
 
@@ -773,6 +778,7 @@ function category(value, types, key)
     }
   }
 }
+
 //Deselect the active shape when we click outside the canvas
 var ignoreClickOnMeElement = document.getElementById('can');
 
@@ -785,4 +791,5 @@ document.addEventListener('click', function(event)
       canvas.renderAll();
     }
 });
+
 

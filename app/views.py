@@ -47,26 +47,3 @@ def category(request):
         print(data)
 
     return redirect('/')
-
-# #For deleting a label by getting its ID
-# def delete_label(request, label_id):
-#     #Get id we select and delete
-#     label = Labels.objects.get(pk=label_id)
-#     label.delete()
-#     #redirect back
-#     return redirect('dashboard')
-
-""" #Searching for a label to be easy
-def search_label(request):
-    if request.method == 'POST':
-        searched = request.POST['searched']
-        img = Upload.objects.last()
-        context = {
-        'img':img,
-        'searched':searched
-        }
-        return render(request,'dashboard.html',context)
-        #return render(request,'dashboard.html',{'searched':searched})
-    else:
-        return render(request,'dashboard.html',{})
- """

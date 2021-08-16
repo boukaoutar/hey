@@ -21,6 +21,4 @@ urlpatterns = [
     path('',views.home, name ='index'),
     path('category',views.category,name='category'),
     path('dashboard',views.dashboard,name='dashboard'),
-    #path('delete_label/<label_id>',views.delete_label,name='delete-label'),
-    #path('search_label/',views.search_label,name='search-label'),
 ]

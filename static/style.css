@@ -326,7 +326,7 @@ canvas
   margin: 5px;
   margin-top: 10px;
   padding: 5px 5px 5px 5px;
-  background-color: gray;
+  background-color: #CFDEE7;
   font-size: 12px;
   white-space: nowrap;
   cursor: pointer;
@@ -340,13 +340,18 @@ canvas
   left: -10px;
   width: 10px;
   height: 10px;
-  border: 2px solid #fff;
-  background-color: #444;
+  border: 2px solid #A3B1BA;
+  background-color: #CFDEE7;
 }
 
 
 .input_filter:focus + label {
   outline: 1px solid #fff;
+}
+
+input[type="checkbox"]:checked + label {
+  background-color: #008CBA;
+  color: white;
 }
 
 .input_filter:checked + label::before {

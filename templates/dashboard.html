@@ -6,7 +6,7 @@
 
 <div style="margin-top: 90px;"> </div>
 <div id="button_div">
-  <button class="button controls" id="save_image"> <span> Télécharger </span> </button>
+  <button class="button controls" id="save-image" > <span> Télécharger </span> </button>
   <button class="button controls" id="json-data"><span> Fichier JSON </span></button>
   <button class="button controls" id="create-polygon"><span> Créer Polygone </span></a></button>
   <button class="button controls" id="create-rect"><span> Créer Rectangle </span></a></button>
@@ -40,17 +40,18 @@
     </form>
 
     <div class="categ_filter">
-      <input class="input_filter" name="category_list" id="treatment" type="radio" onclick="display_treatment()" ">
+      <input class="input_filter" name="category_list" id="treatment" type="checkbox" onclick="check()" ">
       <label class="label_filter" for="treatment">TREATMENT</label>
 
-      <input class="input_filter"  name="category_list" id="anatomy" type="radio" onclick="display_anatomy()" ">
+      <input class="input_filter"  name="category_list" id="anatomy" type="checkbox" onclick="check()" ">
       <label class="label_filter" for="anatomy">ANATOMY</label>
 
-      <input class="input_filter" name="category_list" id="disease" type="radio" onclick="display_disease()" ">
+      <input class="input_filter" name="category_list" id="disease" type="checkbox" onclick="check()" ">
       <label class="label_filter" for="disease">DISEASE</label>
+
     </div>
 
-    <div class="scroller" id="box"> </div> 
+    <div class="scroller" id="box"> </div>
   </div>
 
 
@@ -252,13 +253,95 @@ for (var i = 0; i < btns.length; i++)
   });
 }
 
+//Which category is checked
+function check() 
+{
+  if ( document.getElementById("treatment").checked==true && document.getElementById("anatomy").checked==true && document.getElementById("disease").checked==true) 
+  {
+    $("#box").html("");
+    display_all();
+  }
+  else if ( document.getElementById("treatment").checked==true ) 
+  {
+    $("#box").html("");
+    display_treatment();
+
+    if ( document.getElementById("anatomy").checked==true  ) 
+    {
+      display_anatomy();
+    }
+    else if ( document.getElementById("disease").checked==true  ) 
+    {
+      display_disease();
+    }
+  } 
+  else if ( document.getElementById("anatomy").checked==true) 
+  {
+    $("#box").html("");
+    display_anatomy();
+
+    if ( document.getElementById("treatment").checked==true  ) 
+    {
+      display_treatment();
+    }
+    else if ( document.getElementById("disease").checked==true  ) 
+    {
+      display_disease();
+    }
+  }
+  else if ( document.getElementById("disease").checked==true ) 
+  {
+    $("#box").html("");
+    display_disease();
+
+    if ( document.getElementById("treatment").checked==true  ) 
+    {
+      display_treatment();
+    }
+    else if ( document.getElementById("anatomy").checked==true  ) 
+    {
+      display_anatomy();
+    }
+    
+  }
+  else if ( document.getElementById("treatment").checked==false && document.getElementById("anatomy").checked==false && document.getElementById("disease").checked==false) 
+  {
+    $("#box").html("");
+    display_all();
+  } 
+ 
+  
+};
+
+//Display all 
+function display_all()
+{
+  var tab = []
+
+  {% for c in categories %}
+    //Dictionnary for getting properties of each label
+    var dictionnary =
+    {
+      type: "{{c.type}}",
+      key : {{c.key}},
+      translations: "{{c.translations.FR}}", 
+    }
+  
+    tab.push(dictionnary)
+  {% endfor %} 
+
+  for (let  i in tab) 
+  {
+    $('#box').append('<button class="button category" onclick="category(`' + tab[i].translations + '`,`' + tab[i].type + '`,' + tab[i].key + ')">' + tab[i].translations + '</button>')
+  } 
+}
 // Show just Treatment Category
 function display_treatment()
 {
   var treatment_categ = "TREATMENT"
   //var list = []
   var tab = []
-
+  //Clear my initial box 
 
   {% for c in categories %}
     //Dictionnary for getting properties of each label
@@ -279,11 +362,78 @@ function display_treatment()
   for (let  i in tab) 
   {
     var c = tab[i]
+    
     $('#box').append('<button class="button category" onclick="category(`' + tab[i].translations + '`,`' + tab[i].type + '`,' + tab[i].key + ')">' + tab[i].translations + '</button>')
   } 
     
 }
 
+// Show just Anatomy Category
+function display_anatomy()
+{
+  var treatment_categ = "ANATOMY"
+  //var list = []
+  var tab = []
+  //Clear my initial box 
+
+  {% for c in categories %}
+    //Dictionnary for getting properties of each label
+    var dictionnary =
+    {
+      type: "{{c.type}}",
+      key : {{c.key}},
+      translations: "{{c.translations.FR}}", 
+    }
+  
+    if (dictionnary.type.toUpperCase() == treatment_categ.toUpperCase())
+    {
+      tab.push(dictionnary)
+    }
+    
+  {% endfor %} 
+
+  for (let  i in tab) 
+  {
+    var c = tab[i]
+    
+    $('#box').append('<button class="button category" onclick="category(`' + tab[i].translations + '`,`' + tab[i].type + '`,' + tab[i].key + ')">' + tab[i].translations + '</button>')
+  } 
+    
+}
+
+// Show just disease Category
+function display_disease()
+{
+  var treatment_categ = "DISEASE"
+  //var list = []
+  var tab = []
+  //Clear my initial box 
+
+  {% for c in categories %}
+    //Dictionnary for getting properties of each label
+    var dictionnary =
+    {
+      type: "{{c.type}}",
+      key : {{c.key}},
+      translations: "{{c.translations.FR}}", 
+    }
+  
+    if (dictionnary.type.toUpperCase() == treatment_categ.toUpperCase())
+    {
+      tab.push(dictionnary)
+    }
+    
+  {% endfor %} 
+
+  for (let  i in tab) 
+  {
+    var c = tab[i]
+    
+    $('#box').append('<button class="button category" onclick="category(`' + tab[i].translations + '`,`' + tab[i].type + '`,' + tab[i].key + ')">' + tab[i].translations + '</button>')
+  } 
+    
+}
 </script>
+
 
 {% endblock content %}
