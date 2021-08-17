@@ -19,5 +19,6 @@ from . import views
 
 urlpatterns = [
     path('',views.home, name ='index'),
-
+    path('category',views.category,name='category'),
+    path('dashboard',views.dashboard,name='dashboard'),
 ]

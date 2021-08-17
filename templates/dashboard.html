@@ -1,0 +1,429 @@
+{% extends "home.html" %}
+{% load static %}
+
+{% block content %}
+<button><a style="text-decoration: none; color: black;" href="/" ">Go Back</a></button>
+
+<div style="margin-top: 90px;"> </div>
+<div id="button_div">
+  <button class="button controls" id="save-image" > <span> Télécharger </span> </button>
+  <button class="button controls" id="json-data"><span> Fichier JSON </span></button>
+  <button class="button controls" id="create-polygon"><span> Créer Polygone </span></a></button>
+  <button class="button controls" id="create-rect"><span> Créer Rectangle </span></a></button>
+  <button class="button controls" id="clear" onClick="deleteObj()"><span> Effacer </span></button>
+
+  <input type="checkbox" class="json-data-checkbox" id="json-data-checkbox" onclick="display_json_data({{img.json_data}})">
+
+  <label for="json-data-checkbox">
+      <span class="switch-label off">Analyse d'IA </span>
+      <span class="switch-label on">Analyse d'IA </span>
+      <span class="grip"></span>
+  </label>
+</div>
+
+<div class="canvas-container">
+  <div class="col1" id="col1">
+    <div class="can" id = "can">
+      <canvas id="annotation-canvas" width="1100" height="600"></canvas>
+    </div>
+  </div>
+  
+  <div class="col2">
+    <form action="{% url 'dashboard' %}" id='post-form' method="POST">
+      {% csrf_token %}
+      <div class="search_now">
+        <div>
+          <input type="text" placeholder="Rechercher ..." id="searchbar" >
+        </div>
+      </div>
+    </form>
+
+    <div class="categ_filter">
+      <input class="input_filter" name="category_list" id="treatment" type="checkbox" onclick="check()" ">
+      <label class="label_filter" for="treatment">TREATMENT</label>
+
+      <input class="input_filter"  name="category_list" id="anatomy" type="checkbox" onclick="check()" ">
+      <label class="label_filter" for="anatomy">ANATOMY</label>
+
+      <input class="input_filter" name="category_list" id="disease" type="checkbox" onclick="check()" ">
+      <label class="label_filter" for="disease">DISEASE</label>
+    </div>
+    <div class="scroller" id="box"> </div>
+  </div>
+</div>
+
+
+<script type="text/javascript">
+
+  //image we use it in annotate.js for showing it in canvas
+  var image = "{{img.pic.url}}"
+  //A list tran for saving our filtiring
+  var tran = []
+  //Rects when we Check box
+  var checkedRects = [];
+  
+  // getting from data traslations.FR 
+  {% for c in categories %}
+  //Dictionnary for getting properties of each label
+    var dict =
+    {
+      type: "{{c.type}}",
+      key : {{c.key}},
+      translations: "{{c.translations.FR}}", 
+    }
+    //Push everything in tran 
+    tran.push(dict)
+  {% endfor %}
+
+  // Getting Id of input
+  const searchbar = document.getElementById('searchbar')
+
+  //When we load page we show labels and when he search for something he can see it
+  "load keyup".split(" ").forEach(function(event)
+  {
+    window.addEventListener(event,(e) => 
+    {
+      //deleting what is in div #box
+      document.getElementById('box').innerHTML = "";
+      //Saving value of input in variable
+      var searchString = searchbar.value
+      // getting what user type and no problem if its Lower Or Upper case
+      var filteredCharacters = tran.filter (item => item.translations.toLowerCase().includes(searchString.toLowerCase()))
+
+      //Showing the filters
+      for (let  i in filteredCharacters) 
+      {
+        var c = filteredCharacters[i]
+        $('#box').append('<button class="button category" onclick="category(`' + c.translations + '`,`' + c.type + '`,' + c.key + ')">' + c.translations + '</button>')
+      }
+    });
+  });
+
+  //Using CheckBox Display Rectangles from JSON data
+  function display_rectangle_from_json_data(json_data) 
+  {
+    for (let i in json_data) 
+    {
+      var checkedlabel;
+    
+      //Getting data from json
+      let annotation = json_data[i];
+
+      //properties of the shape ( x, y , height, width, type, subtype)
+      let left = annotation["pos"]["x"];
+      let top = annotation["pos"]["y"];
+      let width = annotation["pos"]["width"];
+      let height = annotation["pos"]["height"];
+      let type = annotation["type"];
+      let subtype = annotation["subtype"];
+      
+      //Getting categories from DATA
+      {% for c in categories %}
+        //Dictionnary for getting properties of each label
+        var dictionnary =
+        {
+          type: "{{c.type}}",
+          key : {{c.key}},
+          translations: "{{c.translations.FR}}", 
+        }
+        
+        if (subtype == dictionnary.key && type.toUpperCase() == dictionnary.type.toUpperCase())
+        {
+          checkedlabel = dictionnary.translations;
+        }
+      {% endfor %}
+
+      // Create the rectangles with  particular class, so they can be identified and removed
+      fabric.Writebox = fabric.util.createClass(fabric.Rect, 
+      {
+        type: "rectangle",
+        initialize: function (element, options) 
+        {
+          this.callSuper("initialize", element, options);
+          options && this.set("lockUniScaling", options.lockUniScaling);
+          options && this.set("translations", options.translations || "");
+          options && this.set("key", options.key || "");
+          options && this.set("types", options.types || "");
+        },
+
+        toObject: function () 
+        {
+          return fabric.util.object.extend(this.callSuper("toObject"), 
+          {
+            translations: this.translations,
+            key: this.key,
+            types: this.types,
+            lockUniScaling: this.lockUniScaling,
+          });
+        },
+
+        _render: function (ctx) 
+        {
+          this.callSuper("_render", ctx);
+          ctx.font = "15px Times";
+          ctx.fillStyle = "red";
+          ctx.fillText(
+            this.translations,
+            -this.width / 2 + 4,
+            -this.height / 2 + 20
+          );
+        },
+      });
+
+      //Create Rectangle
+      var rect = new fabric.Writebox(
+      {
+        left: left,
+        top: top,
+        originX: 'left',
+        originY: 'top',
+        width: width,
+        height: height,
+        angle: 0,
+        transparentCorners: false,
+        hasBorders: false,
+        hasControls: true,
+        hasRotatingPoint: false,
+        translations: checkedlabel,
+        key: subtype,
+        types: type,
+      });
+
+      (rect.stroke = "red"), (rect.strokeWidth = 2);
+      rect.fill = "transparent";
+      //Border
+      rect.opacity = 0.8;
+      rect.hasRotatingPoint = false;
+      rect.myCustomOptionKeepStrokeWidth = 2;
+      checkedRects.push(rect);
+
+      canvas.add(rect);
+    }
+  }
+
+  //Uncheck the box : Hide rectangle
+  function remove_rectangle_from_json_data()
+  {
+    if (checkedRects.length > 0) 
+    {
+      for (let i in checkedRects) 
+      {
+        canvas.remove(checkedRects[i]);
+      }
+      checkedRects = new Array();
+    }
+  }
+
+  //Show Data from JSON
+  function display_json_data(json_data) 
+  {
+    // Get the checkbox
+    var checkBox = document.getElementById("json-data-checkbox");
+
+    // If the checkbox is checked, display the rectangle from json_data
+    if (checkBox.checked == true) 
+    {
+      // display rectangles IF json_data exists
+      display_rectangle_from_json_data(json_data);
+    }
+    else 
+    {
+      // remove rectangles
+      remove_rectangle_from_json_data();
+    }
+  }
+
+  // Add active class to the current button (highlight it when it is selected)
+  var header = document.getElementById("button_div");
+  var btns = header.getElementsByClassName("button controls");
+  for (var i = 0; i < btns.length; i++) 
+  {
+    btns[i].addEventListener("click", function() 
+    {
+    var current = document.getElementsByClassName("active");
+    if (current.length > 0) 
+    { 
+      current[0].className = current[0].className.replace(" active", "");
+    }
+    this.className += " active";
+    });
+  }
+
+  //Which category is checked
+  function check() 
+  {
+    //If all categories are checked :  Show whole list
+    if ( document.getElementById("treatment").checked==true && document.getElementById("anatomy").checked==true && document.getElementById("disease").checked==true) 
+    {
+      //Clear my initial box 
+      $("#box").html("");
+      display_all();
+    }
+    //If Treatment categorie is checked :  Show treatment list
+    else if ( document.getElementById("treatment").checked==true ) 
+    {
+      //Clear my initial box 
+      $("#box").html("");
+      display_treatment();
+
+      if ( document.getElementById("anatomy").checked==true  ) 
+      {
+        display_anatomy();
+      }
+      else if ( document.getElementById("disease").checked==true  ) 
+      {
+        display_disease();
+      }
+    } 
+    //If Anatomy categorie is checked :  Show Anatomy list
+    else if ( document.getElementById("anatomy").checked==true) 
+    {
+      //Clear my initial box 
+      $("#box").html("");
+      display_anatomy();
+
+      if ( document.getElementById("treatment").checked==true  ) 
+      {
+        display_treatment();
+      }
+      else if ( document.getElementById("disease").checked==true  ) 
+      {
+        display_disease();
+      }
+    }
+    //If Disease categorie is checked :  Show Disease list
+    else if ( document.getElementById("disease").checked==true ) 
+    {
+      //Clear my initial box 
+      $("#box").html("");
+      display_disease();
+
+      if ( document.getElementById("treatment").checked==true  ) 
+      {
+        display_treatment();
+      }
+      else if ( document.getElementById("anatomy").checked==true  ) 
+      {
+        display_anatomy();
+      }
+      
+    }
+    //If none of categories is checked :  Show whole list
+    else if ( document.getElementById("treatment").checked==false && document.getElementById("anatomy").checked==false && document.getElementById("disease").checked==false) 
+    {
+      //Clear my initial box 
+      $("#box").html("");
+      display_all();
+    } 
+  };
+
+  //Display whole list of categories
+  function display_all()
+  {
+    var tab = []
+
+    {% for c in categories %}
+      //Dictionnary for getting properties of each label
+      var dictionnary =
+      {
+        type: "{{c.type}}",
+        key : {{c.key}},
+        translations: "{{c.translations.FR}}", 
+      }
+
+      tab.push(dictionnary)
+    {% endfor %} 
+
+    for (let  i in tab) 
+    {
+      $('#box').append('<button class="button category" onclick="category(`' + tab[i].translations + '`,`' + tab[i].type + '`,' + tab[i].key + ')">' + tab[i].translations + '</button>')
+    } 
+  }
+
+  // Show just Treatment Category
+  function display_treatment()
+  {
+    var treatment_categ = "TREATMENT"
+    var tab = []
+
+    {% for c in categories %}
+      //Dictionnary for getting properties of each label
+      var dictionnary =
+      {
+        type: "{{c.type}}",
+        key : {{c.key}},
+        translations: "{{c.translations.FR}}", 
+      }
+    
+      if (dictionnary.type.toUpperCase() == treatment_categ.toUpperCase())
+      {
+        tab.push(dictionnary)
+      }
+    {% endfor %} 
+
+    for (let  i in tab) 
+    {
+      $('#box').append('<button class="button category" onclick="category(`' + tab[i].translations + '`,`' + tab[i].type + '`,' + tab[i].key + ')">' + tab[i].translations + '</button>')
+    } 
+      
+  }
+
+  // Show just Anatomy Category
+  function display_anatomy()
+  {
+    var anatomy_categ = "ANATOMY"
+    var tab = []
+
+    {% for c in categories %}
+      //Dictionnary for getting properties of each label
+      var dictionnary =
+      {
+        type: "{{c.type}}",
+        key : {{c.key}},
+        translations: "{{c.translations.FR}}", 
+      }
+    
+      if (dictionnary.type.toUpperCase() == anatomy_categ.toUpperCase())
+      {
+        tab.push(dictionnary)
+      }
+    {% endfor %} 
+
+    for (let  i in tab) 
+    {
+      $('#box').append('<button class="button category" onclick="category(`' + tab[i].translations + '`,`' + tab[i].type + '`,' + tab[i].key + ')">' + tab[i].translations + '</button>')
+    } 
+      
+  }
+
+  // Show just disease Category
+  function display_disease()
+  {
+    var disease_categ = "DISEASE"
+    var tab = []
+
+    {% for c in categories %}
+      //Dictionnary for getting properties of each label
+      var dictionnary =
+      {
+        type: "{{c.type}}",
+        key : {{c.key}},
+        translations: "{{c.translations.FR}}", 
+      }
+    
+      if (dictionnary.type.toUpperCase() == disease_categ.toUpperCase())
+      {
+        tab.push(dictionnary)
+      }
+    {% endfor %} 
+
+    for (let  i in tab) 
+    {
+      $('#box').append('<button class="button category" onclick="category(`' + tab[i].translations + '`,`' + tab[i].type + '`,' + tab[i].key + ')">' + tab[i].translations + '</button>')
+    } 
+      
+  }
+</script>
+
+
+{% endblock content %}
