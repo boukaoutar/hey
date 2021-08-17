@@ -38,12 +38,10 @@ def dashboard(request):
     }
     return render(request,'dashboard.html',context)
 
-#For labels
+#For getting labels
 def category(request):
     if request.method == 'POST':
         data = request.POST.get('category')
         category = Category.objects.create(translations=data)
         category.save()
-        print(data)
-
     return redirect('/')

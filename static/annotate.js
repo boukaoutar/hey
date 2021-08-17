@@ -13,9 +13,17 @@ var activeLine;
 //To Know which shape we are selecting
 var activeShape = false;
 
+//for Undo redo Mode
+let state = [];
+var mods = 0;
+var last;
+var lastWillBeAdded;
 
 //event is fired after whole content is loaded
-$(window).load(function () { canvasCreation(image); });
+$(window).load(function () 
+{ 
+  canvasCreation(image); 
+});
 
 function canvasCreation(image) 
 {
@@ -109,9 +117,26 @@ var prototypefabric = new (function ()
         });
     });
 
+    //Activate ctrl+z & ctrl+y
+    document.onkeyup = function (e) 
+    {
+      //For making ctrl+z
+      if (e.ctrlKey && e.which == 90) 
+      {
+        undo();
+      } 
+      // Making ctrl+y
+      else if (e.ctrlKey && e.which == 89) 
+      {
+        redo();
+      }
+    };
+
     // mousedown is triggered from an Element while the cursor is over the place
     canvas.on("mouse:down", function (options) 
     {
+      updateModifications(true);
+
       if (options.target && options.target.id == pointArray[0].id) 
       {
         prototypefabric.polygon.generatePolygon(pointArray);
@@ -145,7 +170,10 @@ var prototypefabric = new (function ()
     });
 
     // While the cursor is released
-    canvas.on("mouse:up", function (options) {});
+    canvas.on("mouse:up", function (options) 
+    {
+      updateModifications(true);
+    });
 
     // While object is selected
     canvas.on("object:selected", function (options) 
@@ -472,6 +500,7 @@ var Rectangle = (function ()
 
   Rectangle.prototype.onMouseMove = function (o) 
   {
+ 
     var inst = this;
 
     if (!inst.isEnable()) 
@@ -591,6 +620,7 @@ var Rectangle = (function ()
     //Count rectangles
     rect_count += 1;
 
+    //Create rectangle with its properties
     var rect = new fabric.Writebox(
     {
       left: Math.round(origX),
@@ -632,7 +662,40 @@ var Rectangle = (function ()
   return Rectangle;
 })();
 
-//delete selected object
+//last history user made
+function updateModifications(savehistory) 
+{
+  if (savehistory === true) 
+  {
+    myjson = JSON.stringify(canvas);
+    state.push(myjson);
+  }
+}
+
+//Ctrl+z function
+undo = function undo() 
+{
+  var canvas_objects = canvas._objects;
+  if (mods < state.length) 
+  {
+    //Get last object
+    last = canvas_objects[canvas_objects.length - 1]; 
+    lastWillBeAdded = last;
+    canvas.remove(last);
+    canvas.renderAll();
+    mods += 1;
+  }
+};
+
+//Ctrl+y function ( when we delete selected shape with button and we want reappear it we need use this )
+redo = function redo() 
+{
+  canvas.add(lastWillBeAdded);
+  canvas.renderAll();
+  mods -= 1;
+};
+
+//delete selected shape
 function deleteObj() 
 {
   // get active object or active group
@@ -643,6 +706,7 @@ function deleteObj()
   //if its just one shape you want delete
   if (activeObject) 
   {
+    lastWillBeAdded = activeObject;
     if (confirm("Are you sure?")) 
     {
       canvas.remove(activeObject);
